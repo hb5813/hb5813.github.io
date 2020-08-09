@@ -52,10 +52,8 @@ header:
 left_navi:
   - title:      见闻分享
     children:
-      - title:  注胶防水骗局
+      - title:  “免开挖注胶防水”的天价诈骗行径与58同城的监管失职
         url:    /docs/en/quick-start
-      - title:  Structure
-        url:    /docs/en/structure
   - title:      技术交流
     children:
       - title:  OS
