@@ -1,0 +1,2090 @@
+---
+layout: article
+title: SYSU-《操作系统原理》-实验2：COM格式程序加载
+tag: OS
+key: OS_lab2
+show_subscribe: false
+license: false
+---
+
+<html>
+
+<head>
+<meta http-equiv=Content-Type content="text/html; charset=x-cp20936">
+<meta name=Generator content="Microsoft Word 15 (filtered)">
+<style>
+<!--
+ /* Font Definitions */
+ @font-face
+	{font-family:宋体;
+	panose-1:2 1 6 0 3 1 1 1 1 1;}
+@font-face
+	{font-family:"Cambria Math";
+	panose-1:2 4 5 3 5 4 6 3 2 4;}
+@font-face
+	{font-family:等线;
+	panose-1:2 1 6 0 3 1 1 1 1 1;}
+@font-face
+	{font-family:华文中宋;
+	panose-1:2 1 6 0 4 1 1 1 1 1;}
+@font-face
+	{font-family:Consolas;
+	panose-1:2 11 6 9 2 2 4 3 2 4;}
+@font-face
+	{font-family:Georgia;
+	panose-1:2 4 5 2 5 4 5 2 3 3;}
+@font-face
+	{font-family:"\@华文中宋";}
+@font-face
+	{font-family:"\@宋体";
+	panose-1:2 1 6 0 3 1 1 1 1 1;}
+@font-face
+	{font-family:"\@等线";
+	panose-1:2 1 6 0 3 1 1 1 1 1;}
+ /* Style Definitions */
+ p.MsoNormal, li.MsoNormal, div.MsoNormal
+	{margin:0cm;
+	margin-bottom:.0001pt;
+	text-align:justify;
+	text-justify:inter-ideograph;
+	font-size:10.5pt;
+	font-family:"Times New Roman",serif;}
+p.MsoHeader, li.MsoHeader, div.MsoHeader
+	{margin:0cm;
+	margin-bottom:.0001pt;
+	text-align:center;
+	layout-grid-mode:char;
+	border:none;
+	padding:0cm;
+	font-size:9.0pt;
+	font-family:"Times New Roman",serif;}
+p.MsoFooter, li.MsoFooter, div.MsoFooter
+	{margin:0cm;
+	margin-bottom:.0001pt;
+	layout-grid-mode:char;
+	font-size:9.0pt;
+	font-family:"Times New Roman",serif;}
+p.MsoListParagraph, li.MsoListParagraph, div.MsoListParagraph
+	{margin:0cm;
+	margin-bottom:.0001pt;
+	text-align:justify;
+	text-justify:inter-ideograph;
+	text-indent:21.0pt;
+	font-size:10.5pt;
+	font-family:等线;}
+ /* Page Definitions */
+ @page WordSection1
+	{size:595.3pt 841.9pt;
+	margin:72.0pt 90.0pt 72.0pt 90.0pt;
+	layout-grid:15.6pt;}
+div.WordSection1
+	{page:WordSection1;}
+ /* List Definitions */
+ ol
+	{margin-bottom:0cm;}
+ul
+	{margin-bottom:0cm;}
+-->
+</style>
+
+</head>
+
+<body lang=ZH-CN style='text-justify-trim:punctuation'>
+
+<div class=WordSection1 style='layout-grid:15.6pt'>
+
+<table class=MsoNormalTable border=0 cellspacing=0 cellpadding=0 width=568
+ style='width:426.35pt;border-collapse:collapse'>
+ <tr>
+  <td width=113 valign=top style='width:85.0pt;border:none;border-bottom:solid windowtext 1.0pt;
+  padding:0cm 5.4pt 0cm 5.4pt'>
+  <p class=MsoNormal style='text-align:justify;text-justify:distribute-all-lines;
+  line-height:150%;text-autospace:none'><b><span style='font-size:22.0pt;
+  line-height:150%;font-family:华文中宋'>实验二</span></b></p>
+  </td>
+  <td width=21 valign=top style='width:15.65pt;border:none;border-bottom:solid windowtext 1.0pt;
+  padding:0cm 5.4pt 0cm 5.4pt'>
+  <p class=MsoNormal align=left style='text-align:left;line-height:150%;
+  text-autospace:none'><b><span style='font-size:22.0pt;line-height:150%;
+  font-family:华文中宋'>：</span></b></p>
+  </td>
+  <td width=434 valign=top style='width:325.7pt;border:none;border-bottom:solid windowtext 1.0pt;
+  padding:0cm 5.4pt 0cm 5.4pt'>
+  <p class=MsoNormal align=left style='text-align:left;line-height:150%;
+  text-autospace:none'><b><span lang=EN-US style='font-size:22.0pt;line-height:
+  150%;font-family:华文中宋'>COM</span></b><b><span style='font-size:22.0pt;
+  line-height:150%;font-family:华文中宋'>格式程序加载</span></b><b><span
+  style='font-size:22.0pt;line-height:150%;font-family:华文中宋'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+  </span></b></p>
+  </td>
+ </tr>
+</table>
+
+<p class=MsoNormal style='line-height:150%;text-autospace:none'><b><span
+style='font-size:5.0pt;line-height:150%;font-family:华文中宋'>&nbsp;</span></b></p>
+
+<p class=MsoNormal style='margin-left:0cm;text-indent:0cm;line-height:150%;
+text-autospace:none'><b><span style='line-height:150%;font-family:华文中宋'>一.<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp; </span></span></b><b><span
+style='line-height:150%;font-family:华文中宋'>实验目的</span></b></p>
+
+<p class=MsoNormal style='margin-left:4.25pt;text-indent:17.0pt;line-height:
+150%;text-autospace:none'><span style='line-height:150%;font-family:华文中宋'>1.<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp; </span></span><span
+style='line-height:150%;font-family:华文中宋'>掌握COM格式的一种可执行程序的结构和运行要求。</span></p>
+
+<p class=MsoNormal style='margin-left:4.25pt;text-indent:17.0pt;line-height:
+150%;text-autospace:none'><span style='line-height:150%;font-family:华文中宋'>2.<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp; </span></span><span
+style='line-height:150%;font-family:华文中宋'>实现操作系统执行用户程序这一任务，理解操作系统产生的原始动机之一：自动执行用户程序，提高计算机的利用效率</span></p>
+
+<p class=MsoNormal style='margin-left:4.25pt;text-indent:17.0pt;line-height:
+150%;text-autospace:none'><span style='line-height:150%;font-family:华文中宋'>3.<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp; </span></span><span
+style='line-height:150%;font-family:华文中宋'>了解IBM_PC计算机硬件系统的内存布局和磁盘结构，设计一种简单的内存逻辑组织方法和磁盘组织方法，实现用户程序的存储。</span></p>
+
+<p class=MsoNormal style='margin-left:4.25pt;text-indent:17.0pt;line-height:
+150%;text-autospace:none'><span style='line-height:150%;font-family:华文中宋'>4.<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp; </span></span><span
+style='line-height:150%;font-family:华文中宋'>建立具有简单控制命令的批处理原型操作系统。</span></p>
+
+<p class=MsoNormal style='margin-left:17.0pt;line-height:150%;text-autospace:
+none'><span style='line-height:150%;font-family:华文中宋'>&nbsp;</span></p>
+
+<p class=MsoNormal style='margin-left:0cm;text-indent:0cm;line-height:150%;
+text-autospace:none'><b><span style='line-height:150%;font-family:华文中宋'>二.<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp; </span></span></b><b><span
+style='line-height:150%;font-family:华文中宋'>实验要求</span></b></p>
+
+<p class=MsoNormal style='text-indent:21.0pt;line-height:150%;text-autospace:
+none'><span style='line-height:150%;font-family:华文中宋'>在实验一的基础上，进化你的原型操作系统，增加下列操作系统功能：</span></p>
+
+<p class=MsoNormal style='text-indent:21.0pt;line-height:150%;text-autospace:
+none'><span style='line-height:150%;font-family:华文中宋'>1．可以加载COM格式的用户，多个用户程序顺序存放在软盘的连续扇区中，大小不等，但最大不超过5个扇区。</span></p>
+
+<p class=MsoNormal style='text-indent:21.0pt;line-height:150%;text-autospace:
+none'><span style='line-height:150%;font-family:华文中宋'>2．允许用控制台命令指定按某种顺序执行一组（不少以3个）要执行的用户程序。比如，磁盘上有3个用户程序，可以用命令指定按某顺序运行其中1个、2个或3个程序。命令格式由你指定，并在实验报告中加以说明。</span></p>
+
+<p class=MsoNormal style='line-height:150%;text-autospace:none'><span
+style='line-height:150%;font-family:华文中宋'>&nbsp;</span></p>
+
+<p class=MsoNormal style='margin-left:0cm;text-indent:0cm;line-height:150%;
+text-autospace:none'><b><span style='line-height:150%;font-family:华文中宋'>三.<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp; </span></span></b><b><span
+style='line-height:150%;font-family:华文中宋'>实验方案</span></b></p>
+
+<p class=MsoNormal style='margin-left:38.3pt;text-indent:-17.25pt;line-height:
+150%;text-autospace:none'><span style='line-height:150%;font-family:华文中宋'>1、</span><span
+style='line-height:150%;font-family:华文中宋'>利用NASM编译按照上述要求编写完毕的“进化后的原型操作系统”与按照自己目前操作系统进化方向的设想而编写的4个用户程序（其一为先前制作的“字母碰撞”程序，其二为“帮助页”，其三为“关于lsyOS”，其四为“显示当前时间”）；</span></p>
+
+<p class=MsoNormal style='margin-left:38.3pt;text-indent:-17.25pt;line-height:
+150%;text-autospace:none'><span style='line-height:150%;font-family:华文中宋'>2、</span><span
+style='line-height:150%;font-family:华文中宋'>使用自己制作的lsy_floopy_image_maker软件将引导程序放入软盘映像的第一个扇区，其他用户程序放入随后接连的几个扇区；</span></p>
+
+<p class=MsoNormal style='margin-left:38.3pt;text-indent:-17.25pt;line-height:
+150%;text-autospace:none'><span style='line-height:150%;font-family:华文中宋'>3、</span><span
+style='line-height:150%;font-family:华文中宋'>修改先前VMware Workstation配置中软盘的映像路径为新制作的软盘映像的路径，从而使虚拟机从新软盘映像中引导启动并进入自己新制作的“进化后的原型操作系统”。</span></p>
+
+<p class=MsoNormal style='margin-left:0cm;text-indent:0cm;line-height:150%;
+text-autospace:none'><b><span style='line-height:150%;font-family:华文中宋'>四.<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp; </span></span></b><b><span
+style='line-height:150%;font-family:华文中宋'>实验过程</span></b></p>
+
+<p class=MsoNormal style='margin-left:42.0pt;text-indent:-21.0pt'><span
+style='font-family:华文中宋'>1.<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><span style='font-family:华文中宋'>设计引导程序（lsyOS_boot.asm）。</span></p>
+
+<p class=MsoNormal style='margin-left:42.0pt'><span style='font-family:华文中宋'>因为要实现利用该引导程序与用户交互，因而要完成接受输入的子程序getchar；同时又要载入自己的用户程序，因而还要完成载入用户程序的子程序load_program；当然，我们还需要在屏幕上打印相应提示信息以引导用户操作，故还需要设计打印字符串的子程序print_string。</span></p>
+
+<p class=MsoNormal style='margin-left:42.0pt'><span style='font-family:华文中宋'>&nbsp;</span></p>
+
+<p class=MsoNormal style='margin-left:42.0pt;text-indent:21.0pt'><span
+style='font-family:华文中宋'>其中，各子程序的具体内容如下所示：</span></p>
+
+<p class=MsoNormal style='margin-left:63.0pt;text-indent:-21.0pt'><span
+style='font-family:华文中宋'>a)<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><span style='font-family:华文中宋'>子程序getchar。由于本人想进化的操作系统方向为更易于用户傻瓜化操作的方向，于是此处并未使用命令来运行程序，而是用户只需要在键盘上键入与程序编号对应的数字，即可执行对应的程序。主要思想是利用int
+16h中断实现读取键盘输入，具体代码如下：</span></p>
+
+<p class=MsoNormal align=left style='margin-left:62.95pt;text-align:left;
+line-height:14.25pt;background:#1E1E1E'><span lang=EN-US style='font-family:
+Consolas;color:#D4D4D4'>&nbsp;&nbsp;&nbsp; </span><span lang=EN-US
+style='font-family:Consolas;color:#6A9955'>;------getchar-------</span></p>
+
+<p class=MsoNormal align=left style='margin-left:62.95pt;text-align:left;
+line-height:14.25pt;background:#1E1E1E'><span lang=EN-US style='font-family:
+Consolas;color:#DCDCAA'>&nbsp;&nbsp;&nbsp; getchar:</span></p>
+
+<p class=MsoNormal align=left style='margin-left:62.95pt;text-align:left;
+line-height:14.25pt;background:#1E1E1E'><span lang=EN-US style='font-family:
+Consolas;color:#D4D4D4'>&nbsp;&nbsp;&nbsp; </span><span lang=EN-US
+style='font-family:Consolas;color:#569CD6'>mov</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'> </span><span lang=EN-US
+style='font-family:Consolas;color:#569CD6'>ah</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'>, </span><span lang=EN-US
+style='font-family:Consolas;color:#B5CEA8'>0</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'> </span><span lang=EN-US
+style='font-family:Consolas;color:#6A9955'>; ah = 0h</span><span
+style='font-family:宋体;color:#6A9955'>，读入键盘输入字符的</span><span lang=EN-US
+style='font-family:Consolas;color:#6A9955'>ASCII</span><span style='font-family:
+宋体;color:#6A9955'>码至</span><span lang=EN-US style='font-family:Consolas;
+color:#6A9955'>al</span><span style='font-family:宋体;color:#6A9955'>，小键盘的字符读入的是数字值</span></p>
+
+<p class=MsoNormal align=left style='margin-left:62.95pt;text-align:left;
+line-height:14.25pt;background:#1E1E1E'><span lang=EN-US style='font-family:
+Consolas;color:#D4D4D4'>&nbsp;&nbsp;&nbsp; </span><span lang=EN-US
+style='font-family:Consolas;color:#569CD6'>int</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'> </span><span lang=EN-US
+style='font-family:Consolas;color:#B5CEA8'>16h</span></p>
+
+<p class=MsoNormal align=left style='margin-left:62.95pt;text-align:left;
+line-height:14.25pt;background:#1E1E1E'><span lang=EN-US style='font-family:
+Consolas;color:#D4D4D4'>&nbsp;&nbsp;&nbsp; </span><span lang=EN-US
+style='font-family:Consolas;color:#6A9955'>;----getchar_over----</span></p>
+
+<p class=MsoNormal align=left style='margin-left:62.95pt;text-align:left;
+line-height:14.25pt;background:#1E1E1E'><span lang=EN-US style='font-family:
+Consolas;color:#D4D4D4'>&nbsp;&nbsp;&nbsp; </span></p>
+
+<p class=MsoNormal align=left style='margin-left:62.95pt;text-align:left;
+line-height:14.25pt;background:#1E1E1E'><span lang=EN-US style='font-family:
+Consolas;color:#D4D4D4'>&nbsp;&nbsp;&nbsp; </span><span lang=EN-US
+style='font-family:Consolas;color:#6A9955'>; if(al == 0 || al &gt; 4 &amp;&amp;
+al &lt; '1' || al &gt; '4')</span></p>
+
+<p class=MsoNormal align=left style='margin-left:62.95pt;text-align:left;
+line-height:14.25pt;background:#1E1E1E'><span lang=EN-US style='font-family:
+Consolas;color:#D4D4D4'>&nbsp;&nbsp;&nbsp; </span><span lang=EN-US
+style='font-family:Consolas;color:#6A9955'>; getchar_again()</span></p>
+
+<p class=MsoNormal align=left style='margin-left:62.95pt;text-align:left;
+line-height:14.25pt;background:#1E1E1E'><span lang=EN-US style='font-family:
+Consolas;color:#D4D4D4'>&nbsp;&nbsp;&nbsp; </span><span lang=EN-US
+style='font-family:Consolas;color:#569CD6'>cmp</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'> </span><span lang=EN-US
+style='font-family:Consolas;color:#569CD6'>al</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'>, </span><span lang=EN-US
+style='font-family:Consolas;color:#B5CEA8'>0</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'> </span><span lang=EN-US
+style='font-family:Consolas;color:#6A9955'>; if(al == 0)</span></p>
+
+<p class=MsoNormal align=left style='margin-left:62.95pt;text-align:left;
+line-height:14.25pt;background:#1E1E1E'><span lang=EN-US style='font-family:
+Consolas;color:#D4D4D4'>&nbsp;&nbsp;&nbsp; </span><span lang=EN-US
+style='font-family:Consolas;color:#569CD6'>jz</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'> getchar</span></p>
+
+<p class=MsoNormal align=left style='margin-left:62.95pt;text-align:left;
+line-height:14.25pt;background:#1E1E1E'><span lang=EN-US style='font-family:
+Consolas;color:#D4D4D4'>&nbsp;&nbsp;&nbsp; </span><span lang=EN-US
+style='font-family:Consolas;color:#569CD6'>cmp</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'> </span><span lang=EN-US
+style='font-family:Consolas;color:#569CD6'>al</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'>, </span><span lang=EN-US
+style='font-family:Consolas;color:#B5CEA8'>4</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'> </span><span lang=EN-US
+style='font-family:Consolas;color:#6A9955'>; if(al &lt;= 4)</span></p>
+
+<p class=MsoNormal align=left style='margin-left:62.95pt;text-align:left;
+line-height:14.25pt;background:#1E1E1E'><span lang=EN-US style='font-family:
+Consolas;color:#D4D4D4'>&nbsp;&nbsp;&nbsp; </span><span lang=EN-US
+style='font-family:Consolas;color:#569CD6'>jle</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'> petmit_load</span></p>
+
+<p class=MsoNormal align=left style='margin-left:62.95pt;text-align:left;
+line-height:14.25pt;background:#1E1E1E'><span lang=EN-US style='font-family:
+Consolas;color:#D4D4D4'>&nbsp;&nbsp;&nbsp; </span><span lang=EN-US
+style='font-family:Consolas;color:#569CD6'>cmp</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'> </span><span lang=EN-US
+style='font-family:Consolas;color:#569CD6'>al</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'>, '</span><span lang=EN-US
+style='font-family:Consolas;color:#B5CEA8'>1</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'>' </span><span lang=EN-US
+style='font-family:Consolas;color:#6A9955'>; if(al &lt; '1')</span></p>
+
+<p class=MsoNormal align=left style='margin-left:62.95pt;text-align:left;
+line-height:14.25pt;background:#1E1E1E'><span lang=EN-US style='font-family:
+Consolas;color:#D4D4D4'>&nbsp;&nbsp;&nbsp; </span><span lang=EN-US
+style='font-family:Consolas;color:#569CD6'>jl</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'> getchar</span></p>
+
+<p class=MsoNormal align=left style='margin-left:62.95pt;text-align:left;
+line-height:14.25pt;background:#1E1E1E'><span lang=EN-US style='font-family:
+Consolas;color:#D4D4D4'>&nbsp;&nbsp;&nbsp; </span><span lang=EN-US
+style='font-family:Consolas;color:#569CD6'>cmp</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'> </span><span lang=EN-US
+style='font-family:Consolas;color:#569CD6'>al</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'>, '</span><span lang=EN-US
+style='font-family:Consolas;color:#B5CEA8'>4</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'>'</span></p>
+
+<p class=MsoNormal align=left style='margin-left:62.95pt;text-align:left;
+line-height:14.25pt;background:#1E1E1E'><span lang=EN-US style='font-family:
+Consolas;color:#D4D4D4'>&nbsp;&nbsp;&nbsp; </span><span lang=EN-US
+style='font-family:Consolas;color:#569CD6'>jg</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'> getchar</span></p>
+
+<p class=MsoNormal align=left style='margin-left:62.95pt;text-align:left;
+line-height:14.25pt;background:#1E1E1E'><span lang=EN-US style='font-family:
+Consolas;color:#D4D4D4'>&nbsp;</span></p>
+
+<p class=MsoNormal align=left style='margin-left:62.95pt;text-align:left;
+line-height:14.25pt;background:#1E1E1E'><span lang=EN-US style='font-family:
+Consolas;color:#DCDCAA'>&nbsp;&nbsp;&nbsp; petmit_load:</span></p>
+
+<p class=MsoNormal align=left style='margin-left:62.95pt;text-align:left;
+line-height:14.25pt;background:#1E1E1E'><span lang=EN-US style='font-family:
+Consolas;color:#D4D4D4'>&nbsp;&nbsp;&nbsp; </span><span lang=EN-US
+style='font-family:Consolas;color:#569CD6'>mov</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'> </span><span lang=EN-US
+style='font-family:Consolas;color:#569CD6'>cl</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'>, </span><span lang=EN-US
+style='font-family:Consolas;color:#569CD6'>al</span></p>
+
+<p class=MsoNormal align=left style='margin-left:62.95pt;text-align:left;
+line-height:14.25pt;background:#1E1E1E'><span lang=EN-US style='font-family:
+Consolas;color:#D4D4D4'>&nbsp;&nbsp;&nbsp; </span><span lang=EN-US
+style='font-family:Consolas;color:#569CD6'>cmp</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'> </span><span lang=EN-US
+style='font-family:Consolas;color:#569CD6'>cl</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'>, </span><span lang=EN-US
+style='font-family:Consolas;color:#B5CEA8'>10</span></p>
+
+<p class=MsoNormal align=left style='margin-left:62.95pt;text-align:left;
+line-height:14.25pt;background:#1E1E1E'><span lang=EN-US style='font-family:
+Consolas;color:#D4D4D4'>&nbsp;&nbsp;&nbsp; </span><span lang=EN-US
+style='font-family:Consolas;color:#569CD6'>jl</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'> is_num </span><span lang=EN-US
+style='font-family:Consolas;color:#6A9955'>; if(al &lt; 10) </span><span
+style='font-family:宋体;color:#6A9955'>说明是数字值，无须进行</span><span lang=EN-US
+style='font-family:Consolas;color:#6A9955'>ascii</span><span style='font-family:
+宋体;color:#6A9955'>码转换</span></p>
+
+<p class=MsoNormal align=left style='margin-left:62.95pt;text-align:left;
+line-height:14.25pt;background:#1E1E1E'><span lang=EN-US style='font-family:
+Consolas;color:#D4D4D4'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span><span
+lang=EN-US style='font-family:Consolas;color:#569CD6'>sub</span><span
+lang=EN-US style='font-family:Consolas;color:#D4D4D4'> </span><span lang=EN-US
+style='font-family:Consolas;color:#569CD6'>cl</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'>, '</span><span lang=EN-US
+style='font-family:Consolas;color:#B5CEA8'>0</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'>' </span><span lang=EN-US
+style='font-family:Consolas;color:#6A9955'>; </span><span style='font-family:
+宋体;color:#6A9955'>转换为二进制数</span></p>
+
+<p class=MsoNormal align=left style='margin-left:62.95pt;text-align:left;
+line-height:14.25pt;background:#1E1E1E'><span lang=EN-US style='font-family:
+Consolas;color:#D4D4D4'>&nbsp;&nbsp;&nbsp; </span></p>
+
+<p class=MsoNormal align=left style='margin-left:62.95pt;text-align:left;
+line-height:14.25pt;background:#1E1E1E'><span lang=EN-US style='font-family:
+Consolas;color:#DCDCAA'>&nbsp;&nbsp;&nbsp; is_num:</span></p>
+
+<p class=MsoNormal align=left style='margin-left:62.95pt;text-align:left;
+line-height:14.25pt;background:#1E1E1E'><span lang=EN-US style='font-family:
+Consolas;color:#D4D4D4'>&nbsp;&nbsp;&nbsp; </span><span lang=EN-US
+style='font-family:Consolas;color:#569CD6'>inc</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'> </span><span lang=EN-US
+style='font-family:Consolas;color:#569CD6'>cl</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'> </span><span lang=EN-US
+style='font-family:Consolas;color:#6A9955'>; </span><span style='font-family:
+宋体;color:#6A9955'>因为扇区号为程序编号</span><span lang=EN-US style='font-family:Consolas;
+color:#6A9955'> + 1</span></p>
+
+<p class=MsoNormal align=left style='margin-left:62.95pt;text-align:left;
+line-height:14.25pt;background:#1E1E1E'><span lang=EN-US style='font-family:
+Consolas;color:#D4D4D4'>&nbsp;&nbsp;&nbsp; </span><span lang=EN-US
+style='font-family:Consolas;color:#569CD6'>jmp</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'> load_program</span></p>
+
+<p class=MsoNormal style='margin-left:62.95pt;text-indent:21.0pt'><span
+style='font-family:华文中宋'>其中，因为键盘区和小键盘区int 16h中断所对应的行为有所不同，若为键盘区输入，中断子程序会将输入字符的ASCII码传至AL；而若为小键盘区输入，中断子程序会将键入的数值传入AL，因而我们需要对不同区域的输入进行分别处理，最后均要将其转换为对应输入的数值。</span></p>
+
+<p class=MsoNormal style='margin-left:62.95pt;text-indent:21.0pt'><span
+style='font-family:华文中宋'>当然，为了避免载入空扇区，从而跳转至不存在的用户程序，我们还需要对输入进行判断，拒绝受理不合法的输入。</span></p>
+
+<p class=MsoNormal style='margin-left:62.95pt;text-indent:21.0pt'><span
+style='font-family:华文中宋'>同时，因为子程序load_program调用的int 13h中断需要通过CL表明需要加载的软盘的起始扇区，而我们自己制作的软盘映像中的文件组织形式是：1号扇区储存引导程序，2号扇区才开始储存用户程序1。因而，在此我们可以提前让CL加1，便于之后进行用户程序的加载。</span></p>
+
+<p class=MsoNormal style='margin-left:63.0pt'><span style='font-family:华文中宋'>&nbsp;</span></p>
+
+<p class=MsoNormal style='margin-left:63.0pt;text-indent:-21.0pt'><span
+style='font-family:华文中宋'>b)<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><span style='font-family:华文中宋'>子程序load_program。</span></p>
+
+<p class=MsoNormal style='margin-left:62.95pt;text-indent:21.0pt'><span
+style='font-family:华文中宋'>它通过调用int 13h中断，将软盘指定扇区（CL寄存器中的数值）上的程序加载至内存中偏移量为offset_program的位置，并通过jmp
+offset_program跳转至用户程序首地址，从而完成用户程序的加载执行。</span></p>
+
+<p class=MsoNormal style='margin-left:62.95pt;text-indent:21.0pt'><span
+style='font-family:华文中宋'>在我的lsyOS中，统一规定</span></p>
+
+<p class=MsoNormal align=left style='margin-left:62.95pt;text-align:left;
+line-height:14.25pt;background:#1E1E1E'><span lang=EN-US style='font-family:
+Consolas;color:#D4D4D4'>offset_program </span><span lang=EN-US
+style='font-family:Consolas;color:#4EC9B0'>equ</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'> </span><span lang=EN-US
+style='font-family:Consolas;color:#B5CEA8'>0a100h</span></p>
+
+<p class=MsoNormal style='margin-left:62.95pt;text-indent:21.0pt'><span
+style='font-family:华文中宋'>即让所以用户程序加载至与当前引导程序相同段的偏移量为0a100h的内存处，以方便引导程序的编写。</span></p>
+
+<p class=MsoNormal style='margin-left:62.95pt;text-indent:21.0pt'><span
+style='font-family:华文中宋'>load_program的具体代码如下：</span></p>
+
+<p class=MsoNormal align=left style='margin-left:62.95pt;text-align:left;
+line-height:14.25pt;background:#1E1E1E'><span lang=EN-US style='font-family:
+Consolas;color:#DCDCAA'>load_program:</span></p>
+
+<p class=MsoNormal align=left style='margin-left:62.95pt;text-align:left;
+line-height:14.25pt;background:#1E1E1E'><span lang=EN-US style='font-family:
+Consolas;color:#D4D4D4'>&nbsp;&nbsp;&nbsp; </span><span lang=EN-US
+style='font-family:Consolas;color:#569CD6'>mov</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'> </span><span lang=EN-US
+style='font-family:Consolas;color:#569CD6'>ax</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'>, </span><span lang=EN-US
+style='font-family:Consolas;color:#569CD6'>cs</span></p>
+
+<p class=MsoNormal align=left style='margin-left:62.95pt;text-align:left;
+line-height:14.25pt;background:#1E1E1E'><span lang=EN-US style='font-family:
+Consolas;color:#D4D4D4'>&nbsp;&nbsp;&nbsp; </span><span lang=EN-US
+style='font-family:Consolas;color:#569CD6'>mov</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'> </span><span lang=EN-US
+style='font-family:Consolas;color:#569CD6'>es</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'>, </span><span lang=EN-US
+style='font-family:Consolas;color:#569CD6'>ax</span></p>
+
+<p class=MsoNormal align=left style='margin-left:62.95pt;text-align:left;
+line-height:14.25pt;background:#1E1E1E'><span lang=EN-US style='font-family:
+Consolas;color:#D4D4D4'>&nbsp;&nbsp;&nbsp; </span><span lang=EN-US
+style='font-family:Consolas;color:#569CD6'>mov</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'> </span><span lang=EN-US
+style='font-family:Consolas;color:#569CD6'>bx</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'>, offset_program </span><span
+lang=EN-US style='font-family:Consolas;color:#6A9955'>; bx </span><span
+style='font-family:宋体;color:#6A9955'>偏移地址</span><span lang=EN-US
+style='font-family:Consolas;color:#6A9955'>; </span><span style='font-family:
+宋体;color:#6A9955'>存放数据的内存偏移地址</span></p>
+
+<p class=MsoNormal align=left style='margin-left:62.95pt;text-align:left;
+line-height:14.25pt;background:#1E1E1E'><span lang=EN-US style='font-family:
+Consolas;color:#D4D4D4'>&nbsp;&nbsp;&nbsp; </span><span lang=EN-US
+style='font-family:Consolas;color:#569CD6'>mov</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'> </span><span lang=EN-US
+style='font-family:Consolas;color:#569CD6'>ax</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'>, </span><span lang=EN-US
+style='font-family:Consolas;color:#B5CEA8'>0201h</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'> </span><span lang=EN-US
+style='font-family:Consolas;color:#6A9955'>; AL</span><span style='font-family:
+宋体;color:#6A9955'>：读入的扇区数；</span><span lang=EN-US style='font-family:Consolas;
+color:#6A9955'>AH</span><span style='font-family:宋体;color:#6A9955'>：功能号，</span><span
+lang=EN-US style='font-family:Consolas;color:#6A9955'>ah = 02h</span><span
+style='font-family:宋体;color:#6A9955'>，读扇区</span></p>
+
+<p class=MsoNormal align=left style='margin-left:62.95pt;text-align:left;
+line-height:14.25pt;background:#1E1E1E'><span lang=EN-US style='font-family:
+Consolas;color:#D4D4D4'>&nbsp;&nbsp;&nbsp; </span><span lang=EN-US
+style='font-family:Consolas;color:#6A9955'>; mov cl, 2 </span><span
+style='font-family:宋体;color:#6A9955'>由用户输入。</span><span lang=EN-US
+style='font-family:Consolas;color:#6A9955'>CL</span><span style='font-family:
+宋体;color:#6A9955'>：起始扇区号，起始编号为</span><span lang=EN-US style='font-family:Consolas;
+color:#6A9955'>1</span></p>
+
+<p class=MsoNormal align=left style='margin-left:62.95pt;text-align:left;
+line-height:14.25pt;background:#1E1E1E'><span lang=EN-US style='font-family:
+Consolas;color:#D4D4D4'>&nbsp;&nbsp;&nbsp; </span><span lang=EN-US
+style='font-family:Consolas;color:#569CD6'>mov</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'> </span><span lang=EN-US
+style='font-family:Consolas;color:#569CD6'>ch</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'>, </span><span lang=EN-US
+style='font-family:Consolas;color:#B5CEA8'>0</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'> </span><span lang=EN-US
+style='font-family:Consolas;color:#6A9955'>; </span><span style='font-family:
+宋体;color:#6A9955'>柱面号，起始编号为</span><span lang=EN-US style='font-family:Consolas;
+color:#6A9955'>0</span></p>
+
+<p class=MsoNormal align=left style='margin-left:62.95pt;text-align:left;
+line-height:14.25pt;background:#1E1E1E'><span lang=EN-US style='font-family:
+Consolas;color:#D4D4D4'>&nbsp;&nbsp;&nbsp; </span><span lang=EN-US
+style='font-family:Consolas;color:#569CD6'>mov</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'> </span><span lang=EN-US
+style='font-family:Consolas;color:#569CD6'>dx</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'>, </span><span lang=EN-US
+style='font-family:Consolas;color:#B5CEA8'>0</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'> </span><span lang=EN-US
+style='font-family:Consolas;color:#6A9955'>; DL</span><span style='font-family:
+宋体;color:#6A9955'>：驱动器号，软盘为</span><span lang=EN-US style='font-family:Consolas;
+color:#6A9955'>0</span><span style='font-family:宋体;color:#6A9955'>，硬盘和</span><span
+lang=EN-US style='font-family:Consolas;color:#6A9955'>U</span><span
+style='font-family:宋体;color:#6A9955'>盘为</span><span lang=EN-US
+style='font-family:Consolas;color:#6A9955'>80H</span><span style='font-family:
+宋体;color:#6A9955'>；</span><span lang=EN-US style='font-family:Consolas;
+color:#6A9955'>DH</span><span style='font-family:宋体;color:#6A9955'>：磁头号</span><span
+lang=EN-US style='font-family:Consolas;color:#6A9955'> ; </span><span
+style='font-family:宋体;color:#6A9955'>起始编号为</span><span lang=EN-US
+style='font-family:Consolas;color:#6A9955'>0</span></p>
+
+<p class=MsoNormal align=left style='margin-left:62.95pt;text-align:left;
+line-height:14.25pt;background:#1E1E1E'><span lang=EN-US style='font-family:
+Consolas;color:#D4D4D4'>&nbsp;&nbsp;&nbsp; </span><span lang=EN-US
+style='font-family:Consolas;color:#569CD6'>int</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'> </span><span lang=EN-US
+style='font-family:Consolas;color:#B5CEA8'>13h</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'> </span><span lang=EN-US
+style='font-family:Consolas;color:#6A9955'>; </span><span style='font-family:
+宋体;color:#6A9955'>调用</span><span lang=EN-US style='font-family:Consolas;
+color:#6A9955'>13h</span><span style='font-family:宋体;color:#6A9955'>中断，读磁盘</span></p>
+
+<p class=MsoNormal align=left style='margin-left:62.95pt;text-align:left;
+line-height:14.25pt;background:#1E1E1E'><span lang=EN-US style='font-family:
+Consolas;color:#D4D4D4'>&nbsp;&nbsp;&nbsp; </span><span lang=EN-US
+style='font-family:Consolas;color:#569CD6'>jmp</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'> offset_program </span><span
+lang=EN-US style='font-family:Consolas;color:#6A9955'>; </span><span
+style='font-family:宋体;color:#6A9955'>加载完毕，跳入指定的程序</span></p>
+
+<p class=MsoNormal style='margin-left:62.95pt;text-indent:21.0pt'><span
+style='font-family:华文中宋'>&nbsp;</span></p>
+
+<p class=MsoNormal style='margin-left:63.0pt;text-indent:-21.0pt'><span
+style='font-family:华文中宋'>c)<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><span style='font-family:华文中宋'>子程序print_string。因为上一次使用了直接写入显存的方式来显示字符，所以这次我们选用另一种方式，以增加对汇编和中断子程序的了解。这次是利用int
+10h中断来完成打印提示信息，具体代码如下：</span></p>
+
+<p class=MsoNormal align=left style='margin-left:62.95pt;text-align:left;
+line-height:14.25pt;background:#1E1E1E'><span lang=EN-US style='font-family:
+Consolas;color:#DCDCAA'>print_string:</span></p>
+
+<p class=MsoNormal align=left style='margin-left:62.95pt;text-align:left;
+line-height:14.25pt;background:#1E1E1E'><span lang=EN-US style='font-family:
+Consolas;color:#D4D4D4'>&nbsp;&nbsp;&nbsp; </span><span lang=EN-US
+style='font-family:Consolas;color:#569CD6'>mov</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'> </span><span lang=EN-US
+style='font-family:Consolas;color:#569CD6'>bp</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'>, msg_welcome </span><span
+lang=EN-US style='font-family:Consolas;color:#6A9955'>; es:bp</span><span
+style='font-family:宋体;color:#6A9955'>指向要显示的字符串</span></p>
+
+<p class=MsoNormal align=left style='margin-left:62.95pt;text-align:left;
+line-height:14.25pt;background:#1E1E1E'><span lang=EN-US style='font-family:
+Consolas;color:#D4D4D4'>&nbsp;&nbsp;&nbsp; </span><span lang=EN-US
+style='font-family:Consolas;color:#569CD6'>mov</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'> </span><span lang=EN-US
+style='font-family:Consolas;color:#569CD6'>ax</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'>, </span><span lang=EN-US
+style='font-family:Consolas;color:#B5CEA8'>1300h</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'> </span><span lang=EN-US
+style='font-family:Consolas;color:#6A9955'>; ah = 13h</span><span
+style='font-family:宋体;color:#6A9955'>，调用</span><span lang=EN-US
+style='font-family:Consolas;color:#6A9955'>13</span><span style='font-family:
+宋体;color:#6A9955'>号中断；</span><span lang=EN-US style='font-family:Consolas;
+color:#6A9955'>al = 0</span><span style='font-family:宋体;color:#6A9955'>，不移动光标，字符串中没有属性内容</span></p>
+
+<p class=MsoNormal align=left style='margin-left:62.95pt;text-align:left;
+line-height:14.25pt;background:#1E1E1E'><span lang=EN-US style='font-family:
+Consolas;color:#D4D4D4'>&nbsp;&nbsp;&nbsp; </span><span lang=EN-US
+style='font-family:Consolas;color:#569CD6'>mov</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'> </span><span lang=EN-US
+style='font-family:Consolas;color:#569CD6'>bx</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'>, </span><span lang=EN-US
+style='font-family:Consolas;color:#B5CEA8'>0007h</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'> </span><span lang=EN-US
+style='font-family:Consolas;color:#6A9955'>; </span><span style='font-family:
+宋体;color:#6A9955'>页号为</span><span lang=EN-US style='font-family:Consolas;
+color:#6A9955'>0(BH = 0) </span><span style='font-family:宋体;color:#6A9955'>黑底白字</span><span
+lang=EN-US style='font-family:Consolas;color:#6A9955'>(BL = 07h)</span></p>
+
+<p class=MsoNormal align=left style='margin-left:62.95pt;text-align:left;
+line-height:14.25pt;background:#1E1E1E'><span lang=EN-US style='font-family:
+Consolas;color:#D4D4D4'>&nbsp;&nbsp;&nbsp; </span><span lang=EN-US
+style='font-family:Consolas;color:#569CD6'>mov</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'> </span><span lang=EN-US
+style='font-family:Consolas;color:#569CD6'>cx</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'>, [msg_len] </span><span lang=EN-US
+style='font-family:Consolas;color:#6A9955'>; cx</span><span style='font-family:
+宋体;color:#6A9955'>储存字符串长度</span></p>
+
+<p class=MsoNormal align=left style='margin-left:62.95pt;text-align:left;
+line-height:14.25pt;background:#1E1E1E'><span lang=EN-US style='font-family:
+Consolas;color:#D4D4D4'>&nbsp;&nbsp;&nbsp; </span><span lang=EN-US
+style='font-family:Consolas;color:#569CD6'>mov</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'> </span><span lang=EN-US
+style='font-family:Consolas;color:#569CD6'>dx</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'>, </span><span lang=EN-US
+style='font-family:Consolas;color:#B5CEA8'>0000h</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'> </span><span lang=EN-US
+style='font-family:Consolas;color:#6A9955'>; dh = 0, dl = 12, </span><span
+style='font-family:宋体;color:#6A9955'>在第</span><span lang=EN-US
+style='font-family:Consolas;color:#6A9955'>0</span><span style='font-family:
+宋体;color:#6A9955'>行，第</span><span lang=EN-US style='font-family:Consolas;
+color:#6A9955'>12</span><span style='font-family:宋体;color:#6A9955'>列显示</span></p>
+
+<p class=MsoNormal align=left style='margin-left:62.95pt;text-align:left;
+line-height:14.25pt;background:#1E1E1E'><span lang=EN-US style='font-family:
+Consolas;color:#D4D4D4'>&nbsp;&nbsp;&nbsp; </span><span lang=EN-US
+style='font-family:Consolas;color:#569CD6'>int</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'> </span><span lang=EN-US
+style='font-family:Consolas;color:#B5CEA8'>10h</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'> </span><span lang=EN-US
+style='font-family:Consolas;color:#6A9955'>; </span><span style='font-family:
+宋体;color:#6A9955'>调用</span><span lang=EN-US style='font-family:Consolas;
+color:#6A9955'>10h</span><span style='font-family:宋体;color:#6A9955'>显示器中断</span></p>
+
+<p class=MsoNormal align=left style='margin-left:62.95pt;text-align:left;
+line-height:14.25pt;background:#1E1E1E'><span lang=EN-US style='font-family:
+Consolas;color:#D4D4D4'>&nbsp;&nbsp;&nbsp; </span><span lang=EN-US
+style='font-family:Consolas;color:#569CD6'>ret</span></p>
+
+<p class=MsoNormal style='margin-left:62.95pt;text-indent:21.0pt'><span
+style='font-family:华文中宋'>我们选择打印的提示信息如下</span><span style='font-family:华文中宋'>：</span></p>
+
+<p class=MsoNormal style='margin-left:62.95pt;text-indent:21.0pt'><span
+lang=EN-US>lsyOS loading succefully! </span></p>
+
+<p class=MsoNormal style='margin-left:62.95pt;text-indent:21.0pt'><span
+lang=EN-US>Please enter the number of the program that you want to run</span></p>
+
+<p class=MsoNormal style='margin-left:62.95pt;text-indent:21.0pt'><span
+lang=EN-US>1.Letter impact&nbsp;&nbsp; 2.Help Page&nbsp;&nbsp; 3.About
+lsyOS&nbsp;&nbsp; 4.Time</span></p>
+
+<p class=MsoNormal style='margin-left:62.95pt;text-indent:21.0pt'><span
+style='font-family:华文中宋'>用以告诉用户系统加载成功，并提示用户用键盘键入相应的程序序号以加载用户程序。</span></p>
+
+<p class=MsoNormal style='margin-left:62.95pt;text-indent:21.0pt'><span
+style='font-family:华文中宋'>引导程序源代码的主要部分便如上文所示，完整的汇编语言源文件见“源代码与编译结果\lsyOS_boot.asm”。</span></p>
+
+<p class=MsoNormal><span style='font-family:华文中宋'>&nbsp;</span></p>
+
+<p class=MsoNormal style='margin-left:42.0pt;text-indent:-21.0pt'><span
+style='font-family:华文中宋'>2.<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><span style='font-family:华文中宋'>设计用户程序（lsyOS_boot.asm）。</span></p>
+
+<p class=MsoNormal style='margin-left:63.0pt;text-indent:-21.0pt'><span
+lang=EN-US style='font-family:华文中宋'>a)<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><span lang=EN-US style='font-family:华文中宋'>letter_impact</span><span
+style='font-family:华文中宋'>（</span><span style='font-family:华文中宋'>字母碰撞</span><span
+style='font-family:华文中宋'>）</span><span style='font-family:华文中宋'>程序。</span></p>
+
+<p class=MsoNormal style='margin-left:62.95pt;text-indent:21.0pt'><span
+style='font-family:华文中宋'>这个程序框架同实验1，只是做了边缘位置的修改，以实现在屏幕不同位置显示程序的功能，在此便不再赘述，具体代码见“源代码与编译结果\letter_impact.asm”。</span></p>
+
+<p class=MsoNormal style='margin-left:62.95pt;text-indent:21.0pt'><span
+style='font-family:华文中宋'>但值得注意的一点是，此时letter_impact（字母碰撞）程序不再作为引导程序，因而它不应该长时间占有机器的控制权。它执行完毕后应当将控制权返还给操作系统，即返回系统的主界面，于是，我将以下代码添加至原程序的尾部：</span></p>
+
+<p class=MsoNormal align=left style='margin-left:62.95pt;text-align:left;
+line-height:14.25pt;background:#1E1E1E'><span lang=EN-US style='font-family:
+Consolas;color:#D4D4D4'>&nbsp;&nbsp;&nbsp; offset_boot </span><span lang=EN-US
+style='font-family:Consolas;color:#4EC9B0'>equ</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'> </span><span lang=EN-US
+style='font-family:Consolas;color:#B5CEA8'>7c00h</span></p>
+
+<p class=MsoNormal align=left style='margin-left:62.95pt;text-align:left;
+line-height:14.25pt;background:#1E1E1E'><span lang=EN-US style='font-family:
+Consolas;color:#D4D4D4'>&nbsp;&nbsp;&nbsp; </span><span lang=EN-US
+style='font-family:Consolas;color:#569CD6'>jmp</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'> offset_boot</span></p>
+
+<p class=MsoNormal style='margin-left:62.95pt;text-indent:21.0pt'><span
+style='font-family:华文中宋'>使程序结束之后，跳回操作系统引导程序，交还控制权。</span></p>
+
+<p class=MsoNormal><span style='font-family:华文中宋'>&nbsp;</span></p>
+
+<p class=MsoNormal style='margin-left:63.0pt;text-indent:-21.0pt'><span
+style='font-family:华文中宋'>b)<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><span style='font-family:华文中宋'>help_page（帮助页）程序。</span></p>
+
+<p class=MsoNormal style='margin-left:62.95pt;text-indent:21.0pt'><span
+style='font-family:华文中宋'>这个程序以后将会慢慢扩展，用于解答用户在使用过程中可能会遇到的问题。目前它的提示信息仅有“On the system
+home page, you can click on the number on the keyboard to select the program
+you want to run. </span><span lang=EN-US style='font-family:华文中宋'>Note that if
+you use number pad, remember to open the Num lock.</span><span
+style='font-family:华文中宋'>”</span></p>
+
+<p class=MsoNormal style='margin-left:62.95pt;text-indent:21.0pt'><span
+style='font-family:华文中宋'>因为有些用户使用小键盘输入数字，但启动时BIOS是默认关闭小键盘小键盘锁Num lock的，这时候用户可能会疑惑为什么按键按下后程序系统毫无反应。若用户使用非小键盘区的数字3进入帮助程序后，便可了解这个问题的缘由，从而下次便可正常使用小键盘选择需要运行的程序。</span></p>
+
+<p class=MsoNormal style='margin-left:62.95pt;text-indent:21.0pt'><span
+style='font-family:华文中宋'>它与子程序print_string中的打印提示信息的原理相同，同样都是调用int 10h中断来完成字符串的显示。</span></p>
+
+<p class=MsoNormal style='margin-left:62.95pt;text-indent:21.0pt'><span
+style='font-family:华文中宋'>但是，由于考虑到显示区域的屏幕原来可能会存在信息，当然，也考虑到我们需要设置帮助页对应的背景颜色以显示它的与众不同，于是，我们另外设置了一个cls子程序以完成对屏幕特定区域的显存信息写入。代码如下：</span></p>
+
+<p class=MsoNormal align=left style='margin-left:62.95pt;text-align:left;
+line-height:14.25pt;background:#1E1E1E'><span lang=EN-US style='font-family:
+Consolas;color:#DCDCAA'>cls:</span></p>
+
+<p class=MsoNormal align=left style='margin-left:62.95pt;text-align:left;
+line-height:14.25pt;background:#1E1E1E'><span lang=EN-US style='font-family:
+Consolas;color:#D4D4D4'>&nbsp;&nbsp;&nbsp; </span><span lang=EN-US
+style='font-family:Consolas;color:#569CD6'>mov</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'> </span><span lang=EN-US
+style='font-family:Consolas;color:#569CD6'>al</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'>, </span><span lang=EN-US
+style='font-family:Consolas;color:#B5CEA8'>0</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'> </span><span lang=EN-US
+style='font-family:Consolas;color:#6A9955'>; </span><span style='font-family:
+宋体;color:#6A9955'>上翻行数，从窗口底部算起</span></p>
+
+<p class=MsoNormal align=left style='margin-left:62.95pt;text-align:left;
+line-height:14.25pt;background:#1E1E1E'><span lang=EN-US style='font-family:
+Consolas;color:#D4D4D4'>&nbsp;&nbsp;&nbsp; </span><span lang=EN-US
+style='font-family:Consolas;color:#569CD6'>mov</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'> </span><span lang=EN-US
+style='font-family:Consolas;color:#569CD6'>ah</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'>, </span><span lang=EN-US
+style='font-family:Consolas;color:#B5CEA8'>06h</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'> </span><span lang=EN-US
+style='font-family:Consolas;color:#6A9955'>; </span><span style='font-family:
+宋体;color:#6A9955'>屏幕上翻，用于清屏</span></p>
+
+<p class=MsoNormal align=left style='margin-left:62.95pt;text-align:left;
+line-height:14.25pt;background:#1E1E1E'><span lang=EN-US style='font-family:
+Consolas;color:#D4D4D4'>&nbsp;&nbsp;&nbsp; </span><span lang=EN-US
+style='font-family:Consolas;color:#569CD6'>mov</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'> </span><span lang=EN-US
+style='font-family:Consolas;color:#569CD6'>ch</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'>, screen_up </span><span lang=EN-US
+style='font-family:Consolas;color:#6A9955'>; </span><span style='font-family:
+宋体;color:#6A9955'>左上角的行号</span></p>
+
+<p class=MsoNormal align=left style='margin-left:62.95pt;text-align:left;
+line-height:14.25pt;background:#1E1E1E'><span lang=EN-US style='font-family:
+Consolas;color:#D4D4D4'>&nbsp;&nbsp;&nbsp; </span><span lang=EN-US
+style='font-family:Consolas;color:#569CD6'>mov</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'> </span><span lang=EN-US
+style='font-family:Consolas;color:#569CD6'>cl</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'>, screen_left </span><span
+lang=EN-US style='font-family:Consolas;color:#6A9955'>; </span><span
+style='font-family:宋体;color:#6A9955'>左上角的列号</span></p>
+
+<p class=MsoNormal align=left style='margin-left:62.95pt;text-align:left;
+line-height:14.25pt;background:#1E1E1E'><span lang=EN-US style='font-family:
+Consolas;color:#D4D4D4'>&nbsp;&nbsp;&nbsp; </span><span lang=EN-US
+style='font-family:Consolas;color:#569CD6'>mov</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'> </span><span lang=EN-US
+style='font-family:Consolas;color:#569CD6'>dh</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'>, screen_down </span><span
+lang=EN-US style='font-family:Consolas;color:#6A9955'>; </span><span
+style='font-family:宋体;color:#6A9955'>右下角的行号</span></p>
+
+<p class=MsoNormal align=left style='margin-left:62.95pt;text-align:left;
+line-height:14.25pt;background:#1E1E1E'><span lang=EN-US style='font-family:
+Consolas;color:#D4D4D4'>&nbsp;&nbsp;&nbsp; </span><span lang=EN-US
+style='font-family:Consolas;color:#569CD6'>mov</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'> </span><span lang=EN-US
+style='font-family:Consolas;color:#569CD6'>dl</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'>, screen_right </span><span
+lang=EN-US style='font-family:Consolas;color:#6A9955'>; </span><span
+style='font-family:宋体;color:#6A9955'>右下角的列号</span></p>
+
+<p class=MsoNormal align=left style='margin-left:62.95pt;text-align:left;
+line-height:14.25pt;background:#1E1E1E'><span lang=EN-US style='font-family:
+Consolas;color:#D4D4D4'>&nbsp;&nbsp;&nbsp; </span><span lang=EN-US
+style='font-family:Consolas;color:#569CD6'>mov</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'> </span><span lang=EN-US
+style='font-family:Consolas;color:#569CD6'>bh</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'>, </span><span lang=EN-US
+style='font-family:Consolas;color:#B5CEA8'>17h</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'> </span><span lang=EN-US
+style='font-family:Consolas;color:#6A9955'>; </span><span style='font-family:
+宋体;color:#6A9955'>属性为蓝底白字</span></p>
+
+<p class=MsoNormal align=left style='margin-left:62.95pt;text-align:left;
+line-height:14.25pt;background:#1E1E1E'><span lang=EN-US style='font-family:
+Consolas;color:#D4D4D4'>&nbsp;&nbsp;&nbsp; </span><span lang=EN-US
+style='font-family:Consolas;color:#569CD6'>int</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'> </span><span lang=EN-US
+style='font-family:Consolas;color:#B5CEA8'>10h</span></p>
+
+<p class=MsoNormal align=left style='margin-left:62.95pt;text-align:left;
+line-height:14.25pt;background:#1E1E1E'><span lang=EN-US style='font-family:
+Consolas;color:#D4D4D4'>&nbsp;&nbsp;&nbsp; </span><span lang=EN-US
+style='font-family:Consolas;color:#569CD6'>ret</span></p>
+
+<p class=MsoNormal style='margin-left:62.95pt;text-indent:21.0pt'><span
+style='font-family:华文中宋'>这便是该帮助页程序与众不同的地方</span><span style='font-family:华文中宋'>，</span><span
+style='font-family:华文中宋'>完整的代码见</span><span style='font-family:华文中宋'>“</span><span
+style='font-family:华文中宋'>源代码与编译结果</span><span lang=EN-US style='font-family:
+华文中宋'>\help_page.asm</span><span style='font-family:华文中宋'>”</span><span
+style='font-family:华文中宋'>。</span></p>
+
+<p class=MsoNormal style='margin-left:63.0pt;text-indent:-21.0pt'><span
+style='font-family:华文中宋'>c)<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><span style='font-family:华文中宋'>about_lsyOS（关于lsyOS）程序。</span></p>
+
+<p class=MsoNormal style='margin-left:62.95pt;text-indent:21.0pt'><span
+style='font-family:华文中宋'>该程序用于显示关于与lsyOS有关的信息，如版本号，制作时间，版权声明等。目前，它显示的信息如下：</span></p>
+
+<p class=MsoNormal style='margin-left:62.95pt;text-indent:21.0pt'><span
+lang=EN-US style='font-family:华文中宋'>About lsyOS</span></p>
+
+<p class=MsoNormal style='margin-left:62.95pt;text-indent:21.0pt'><span
+lang=EN-US style='font-family:华文中宋'>Version: 0.0.1 Beta</span></p>
+
+<p class=MsoNormal style='margin-left:62.95pt;text-indent:21.0pt'><span
+lang=EN-US style='font-family:华文中宋'>Update date: 2019/03/23</span></p>
+
+<p class=MsoNormal style='margin-left:62.95pt;text-indent:21.0pt'><span
+lang=EN-US style='font-family:华文中宋'>School of Data and Computer Science</span></p>
+
+<p class=MsoNormal style='margin-left:62.95pt;text-indent:21.0pt'><span
+lang=EN-US style='font-family:华文中宋'>Sun Yat-sen University</span></p>
+
+<p class=MsoNormal style='margin-left:62.95pt;text-indent:21.0pt'><span
+lang=EN-US style='font-family:华文中宋'>人工马赛克（学号 姓名）</span></p>
+
+<p class=MsoNormal style='margin-left:62.95pt;text-indent:21.0pt'><span
+lang=EN-US style='font-family:华文中宋'>All Rights Reserved</span></p>
+
+<p class=MsoNormal style='margin-left:62.95pt;text-indent:21.0pt'><span
+lang=EN-US style='font-family:华文中宋'>&nbsp;</span></p>
+
+<p class=MsoNormal style='margin-left:62.95pt;text-indent:21.0pt'><span
+style='font-family:华文中宋'>它与</span><span lang=EN-US style='font-family:华文中宋'>help_page</span><span
+style='font-family:华文中宋'>（</span><span style='font-family:华文中宋'>帮助页</span><span
+style='font-family:华文中宋'>）</span><span style='font-family:华文中宋'>程序原理完全相同</span><span
+style='font-family:华文中宋'>，</span><span style='font-family:华文中宋'>完整的代码见</span><span
+style='font-family:华文中宋'>“</span><span style='font-family:华文中宋'>源代码与编译结果</span><span
+lang=EN-US style='font-family:华文中宋'>\lsyOS.asm</span><span style='font-family:
+华文中宋'>”</span><span style='font-family:华文中宋'>。</span></p>
+
+<p class=MsoNormal><span lang=EN-US style='font-family:华文中宋'>&nbsp;</span></p>
+
+<p class=MsoNormal style='margin-left:63.0pt;text-indent:-21.0pt'><span
+style='font-family:华文中宋'>d)<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><span style='font-family:华文中宋'>time（显示当前时间）程序。</span></p>
+
+<p class=MsoNormal style='margin-left:62.95pt;text-indent:21.0pt'><span
+style='font-family:华文中宋'>因为用户对于当前时间的要求是一个基本要求，因此市面上所有的操作系统都能显示当前时间，我的lsyOS当然也不例外。</span></p>
+
+<p class=MsoNormal style='margin-left:62.95pt;text-indent:21.0pt'><span
+style='font-family:华文中宋'>该程序显示时间的原理为：</span></p>
+
+<p class=MsoNormal style='margin-left:62.95pt;text-indent:21.0pt'><span
+style='font-family:华文中宋'>在CMOS RAM中，以BCD码的形式存放着当前的时间：年、月、日、时、分、秒。存放的单元为：秒：0，分：2，时：4，日：7，月：8，年：9。</span></p>
+
+<p class=MsoNormal style='margin-left:62.95pt;text-indent:21.0pt'><span
+style='font-family:华文中宋'>读取这些信息的方法是：</span></p>
+
+<p class=MsoNormal style='margin-left:62.95pt;text-indent:21.0pt'><span
+style='font-family:华文中宋'>out 70H, 寄存器 ;其中，寄存器存放要读入的单元编号</span></p>
+
+<p class=MsoNormal style='margin-left:62.95pt;text-indent:21.0pt'><span
+style='font-family:华文中宋'>in 寄存器, 71H ; 从指定单元处读取数据</span></p>
+
+<p class=MsoNormal style='margin-left:62.95pt;text-indent:21.0pt'><span
+style='font-family:华文中宋'>根据上述原理，我们便可编写出获取当前时间的子程序read_time_from_CMOS，具体代码如下：</span></p>
+
+<p class=MsoNormal align=left style='margin-left:62.95pt;text-align:left;
+line-height:14.25pt;background:#1E1E1E'><span lang=EN-US style='font-family:
+Consolas;color:#D4D4D4'>len </span><span lang=EN-US style='font-family:Consolas;
+color:#4EC9B0'>equ</span><span lang=EN-US style='font-family:Consolas;
+color:#D4D4D4'> </span><span lang=EN-US style='font-family:Consolas;color:#B5CEA8'>17</span><span
+lang=EN-US style='font-family:Consolas;color:#D4D4D4'> </span><span lang=EN-US
+style='font-family:Consolas;color:#6A9955'>;name db &quot;yy/mm/dd
+hh:mm:ss&quot;</span><span style='font-family:宋体;color:#6A9955'>的长度，不用当成变量，节约运行时计算代价</span></p>
+
+<p class=MsoNormal align=left style='margin-left:62.95pt;text-align:left;
+line-height:14.25pt;background:#1E1E1E'><span lang=EN-US style='font-family:
+Consolas;color:#D4D4D4'>time_select_num </span><span lang=EN-US
+style='font-family:Consolas;color:#4EC9B0'>equ</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'> </span><span lang=EN-US
+style='font-family:Consolas;color:#B5CEA8'>6</span><span lang=EN-US
+style='font-family:Consolas;color:#6A9955'>; time_select</span><span
+style='font-family:宋体;color:#6A9955'>可选参数的数量，年、月、日、时、分、秒共</span><span
+lang=EN-US style='font-family:Consolas;color:#6A9955'>6</span><span
+style='font-family:宋体;color:#6A9955'>种</span></p>
+
+<p class=MsoNormal align=left style='margin-left:62.95pt;text-align:left;
+line-height:14.25pt;background:#1E1E1E'><span lang=EN-US style='font-family:
+Consolas;color:#D4D4D4'>&nbsp;</span></p>
+
+<p class=MsoNormal align=left style='margin-left:62.95pt;text-align:left;
+line-height:14.25pt;background:#1E1E1E'><span lang=EN-US style='font-family:
+Consolas;color:#DCDCAA'>read_time_from_CMOS:</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'> </span><span lang=EN-US
+style='font-family:Consolas;color:#6A9955'>; </span><span style='font-family:
+宋体;color:#6A9955'>也可以用</span><span lang=EN-US style='font-family:Consolas;
+color:#6A9955'>INT 1AH</span><span style='font-family:宋体;color:#6A9955'>时钟服务</span></p>
+
+<p class=MsoNormal align=left style='margin-left:62.95pt;text-align:left;
+line-height:14.25pt;background:#1E1E1E'><span lang=EN-US style='font-family:
+Consolas;color:#D4D4D4'>&nbsp;&nbsp;&nbsp; </span><span lang=EN-US
+style='font-family:Consolas;color:#569CD6'>mov</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'> </span><span lang=EN-US
+style='font-family:Consolas;color:#569CD6'>dl</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'>, time_select_num </span><span
+lang=EN-US style='font-family:Consolas;color:#6A9955'>; </span><span
+style='font-family:宋体;color:#6A9955'>年、月、日、时、分、秒，要读</span><span lang=EN-US
+style='font-family:Consolas;color:#6A9955'>6</span><span style='font-family:
+宋体;color:#6A9955'>次，循环六次，因为中间移位时要用到</span><span lang=EN-US style='font-family:
+Consolas;color:#6A9955'>dl</span><span style='font-family:宋体;color:#6A9955'>，故此处不用</span><span
+lang=EN-US style='font-family:Consolas;color:#6A9955'>cx</span><span
+style='font-family:宋体;color:#6A9955'>与</span><span lang=EN-US style='font-family:
+Consolas;color:#6A9955'>loop</span><span style='font-family:宋体;color:#6A9955'>组合的循环</span></p>
+
+<p class=MsoNormal align=left style='margin-left:62.95pt;text-align:left;
+line-height:14.25pt;background:#1E1E1E'><span lang=EN-US style='font-family:
+Consolas;color:#D4D4D4'>&nbsp;&nbsp;&nbsp; </span><span lang=EN-US
+style='font-family:Consolas;color:#569CD6'>mov</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'> </span><span lang=EN-US
+style='font-family:Consolas;color:#569CD6'>si</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'>, time_select </span><span
+lang=EN-US style='font-family:Consolas;color:#6A9955'>; si</span><span
+style='font-family:宋体;color:#6A9955'>指示现在取</span><span lang=EN-US
+style='font-family:Consolas;color:#6A9955'>time_select</span><span
+style='font-family:宋体;color:#6A9955'>的哪一项</span></p>
+
+<p class=MsoNormal align=left style='margin-left:62.95pt;text-align:left;
+line-height:14.25pt;background:#1E1E1E'><span lang=EN-US style='font-family:
+Consolas;color:#D4D4D4'>&nbsp;&nbsp;&nbsp; </span><span lang=EN-US
+style='font-family:Consolas;color:#569CD6'>mov</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'> </span><span lang=EN-US
+style='font-family:Consolas;color:#569CD6'>di</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'>, time_format </span><span
+lang=EN-US style='font-family:Consolas;color:#6A9955'>; </span><span
+style='font-family:宋体;color:#6A9955'>写到时间格式字符串</span></p>
+
+<p class=MsoNormal align=left style='margin-left:62.95pt;text-align:left;
+line-height:14.25pt;background:#1E1E1E'><span lang=EN-US style='font-family:
+Consolas;color:#D4D4D4'>&nbsp;</span></p>
+
+<p class=MsoNormal align=left style='margin-left:62.95pt;text-align:left;
+line-height:14.25pt;background:#1E1E1E'><span lang=EN-US style='font-family:
+Consolas;color:#DCDCAA'>&nbsp;&nbsp;&nbsp; read:</span></p>
+
+<p class=MsoNormal align=left style='margin-left:62.95pt;text-align:left;
+line-height:14.25pt;background:#1E1E1E'><span lang=EN-US style='font-family:
+Consolas;color:#D4D4D4'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span><span
+lang=EN-US style='font-family:Consolas;color:#569CD6'>mov</span><span
+lang=EN-US style='font-family:Consolas;color:#D4D4D4'> </span><span lang=EN-US
+style='font-family:Consolas;color:#569CD6'>al</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'>, [</span><span lang=EN-US
+style='font-family:Consolas;color:#569CD6'>si</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'>] </span><span lang=EN-US
+style='font-family:Consolas;color:#6A9955'>; </span><span style='font-family:
+宋体;color:#6A9955'>选择此次需要读取的参数，是年、月、日、时、分、秒中的哪一个</span></p>
+
+<p class=MsoNormal align=left style='margin-left:62.95pt;text-align:left;
+line-height:14.25pt;background:#1E1E1E'><span lang=EN-US style='font-family:
+Consolas;color:#D4D4D4'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span><span
+lang=EN-US style='font-family:Consolas;color:#569CD6'>inc</span><span
+lang=EN-US style='font-family:Consolas;color:#D4D4D4'> </span><span lang=EN-US
+style='font-family:Consolas;color:#569CD6'>si</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'> </span><span lang=EN-US
+style='font-family:Consolas;color:#6A9955'>; </span><span style='font-family:
+宋体;color:#6A9955'>选完了这个参数，下次选下一个参数</span></p>
+
+<p class=MsoNormal align=left style='margin-left:62.95pt;text-align:left;
+line-height:14.25pt;background:#1E1E1E'><span lang=EN-US style='font-family:
+Consolas;color:#D4D4D4'>&nbsp;</span></p>
+
+<p class=MsoNormal align=left style='margin-left:62.95pt;text-align:left;
+line-height:14.25pt;background:#1E1E1E'><span lang=EN-US style='font-family:
+Consolas;color:#D4D4D4'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span><span
+lang=EN-US style='font-family:Consolas;color:#569CD6'>out</span><span
+lang=EN-US style='font-family:Consolas;color:#D4D4D4'> </span><span lang=EN-US
+style='font-family:Consolas;color:#B5CEA8'>70h</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'>, </span><span lang=EN-US
+style='font-family:Consolas;color:#569CD6'>al</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'> </span><span lang=EN-US
+style='font-family:Consolas;color:#6A9955'>; </span><span style='font-family:
+宋体;color:#6A9955'>把</span><span lang=EN-US style='font-family:Consolas;
+color:#6A9955'>9</span><span style='font-family:宋体;color:#6A9955'>送到</span><span
+lang=EN-US style='font-family:Consolas;color:#6A9955'>70h</span><span
+style='font-family:宋体;color:#6A9955'>端口</span></p>
+
+<p class=MsoNormal align=left style='margin-left:62.95pt;text-align:left;
+line-height:14.25pt;background:#1E1E1E'><span lang=EN-US style='font-family:
+Consolas;color:#D4D4D4'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span><span
+lang=EN-US style='font-family:Consolas;color:#569CD6'>in</span><span
+lang=EN-US style='font-family:Consolas;color:#D4D4D4'> </span><span lang=EN-US
+style='font-family:Consolas;color:#569CD6'>al</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'>, </span><span lang=EN-US
+style='font-family:Consolas;color:#B5CEA8'>71h</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'> </span><span lang=EN-US
+style='font-family:Consolas;color:#6A9955'>; </span><span style='font-family:
+宋体;color:#6A9955'>注意，</span><span lang=EN-US style='font-family:Consolas;
+color:#6A9955'>in</span><span style='font-family:宋体;color:#6A9955'>的目的寄存器只能是</span><span
+lang=EN-US style='font-family:Consolas;color:#6A9955'>al</span><span
+style='font-family:宋体;color:#6A9955'>或者</span><span lang=EN-US
+style='font-family:Consolas;color:#6A9955'>ax</span><span style='font-family:
+宋体;color:#6A9955'>，这时候</span><span lang=EN-US style='font-family:Consolas;
+color:#6A9955'>al</span><span style='font-family:宋体;color:#6A9955'>的高四位表示十位数的</span><span
+lang=EN-US style='font-family:Consolas;color:#6A9955'>BCD</span><span
+style='font-family:宋体;color:#6A9955'>码，低四位表示个位数的</span><span lang=EN-US
+style='font-family:Consolas;color:#6A9955'>BCD</span><span style='font-family:
+宋体;color:#6A9955'>码，如</span><span lang=EN-US style='font-family:Consolas;
+color:#6A9955'>12</span><span style='font-family:宋体;color:#6A9955'>表示为</span><span
+lang=EN-US style='font-family:Consolas;color:#6A9955'>00010010</span></p>
+
+<p class=MsoNormal align=left style='margin-left:62.95pt;text-align:left;
+line-height:14.25pt;background:#1E1E1E'><span lang=EN-US style='font-family:
+Consolas;color:#D4D4D4'>&nbsp;</span></p>
+
+<p class=MsoNormal align=left style='margin-left:62.95pt;text-align:left;
+line-height:14.25pt;background:#1E1E1E'><span lang=EN-US style='font-family:
+Consolas;color:#D4D4D4'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span><span
+lang=EN-US style='font-family:Consolas;color:#569CD6'>mov</span><span
+lang=EN-US style='font-family:Consolas;color:#D4D4D4'> </span><span lang=EN-US
+style='font-family:Consolas;color:#569CD6'>ah</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'>, </span><span lang=EN-US
+style='font-family:Consolas;color:#569CD6'>al</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'> </span><span lang=EN-US
+style='font-family:Consolas;color:#6A9955'>; </span><span style='font-family:
+宋体;color:#6A9955'>把两位数的</span><span lang=EN-US style='font-family:Consolas;
+color:#6A9955'>BCD</span><span style='font-family:宋体;color:#6A9955'>码</span><span
+lang=EN-US style='font-family:Consolas;color:#6A9955'>copy</span><span
+style='font-family:宋体;color:#6A9955'>到</span><span lang=EN-US style='font-family:
+Consolas;color:#6A9955'>ah</span></p>
+
+<p class=MsoNormal align=left style='margin-left:62.95pt;text-align:left;
+line-height:14.25pt;background:#1E1E1E'><span lang=EN-US style='font-family:
+Consolas;color:#D4D4D4'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span><span
+lang=EN-US style='font-family:Consolas;color:#569CD6'>and</span><span
+lang=EN-US style='font-family:Consolas;color:#D4D4D4'> </span><span lang=EN-US
+style='font-family:Consolas;color:#569CD6'>ah</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'>, </span><span lang=EN-US
+style='font-family:Consolas;color:#B5CEA8'>00001111b</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'> </span><span lang=EN-US
+style='font-family:Consolas;color:#6A9955'>; </span><span style='font-family:
+宋体;color:#6A9955'>把十位数的</span><span lang=EN-US style='font-family:Consolas;
+color:#6A9955'>BCD</span><span style='font-family:宋体;color:#6A9955'>码干掉，只留个位数的</span><span
+lang=EN-US style='font-family:Consolas;color:#6A9955'>BCD</span><span
+style='font-family:宋体;color:#6A9955'>码</span></p>
+
+<p class=MsoNormal align=left style='margin-left:62.95pt;text-align:left;
+line-height:14.25pt;background:#1E1E1E'><span lang=EN-US style='font-family:
+Consolas;color:#D4D4D4'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span></p>
+
+<p class=MsoNormal align=left style='margin-left:62.95pt;text-align:left;
+line-height:14.25pt;background:#1E1E1E'><span lang=EN-US style='font-family:
+Consolas;color:#D4D4D4'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span><span
+lang=EN-US style='font-family:Consolas;color:#569CD6'>mov</span><span
+lang=EN-US style='font-family:Consolas;color:#D4D4D4'> </span><span lang=EN-US
+style='font-family:Consolas;color:#569CD6'>cl</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'>, </span><span lang=EN-US
+style='font-family:Consolas;color:#B5CEA8'>4</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'> </span><span lang=EN-US
+style='font-family:Consolas;color:#6A9955'>; </span><span style='font-family:
+宋体;color:#6A9955'>当移位数大于</span><span lang=EN-US style='font-family:Consolas;
+color:#6A9955'>1</span><span style='font-family:宋体;color:#6A9955'>时，要把移位次数放到</span><span
+lang=EN-US style='font-family:Consolas;color:#6A9955'>cl</span><span
+style='font-family:宋体;color:#6A9955'>中</span></p>
+
+<p class=MsoNormal align=left style='margin-left:62.95pt;text-align:left;
+line-height:14.25pt;background:#1E1E1E'><span lang=EN-US style='font-family:
+Consolas;color:#D4D4D4'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span><span
+lang=EN-US style='font-family:Consolas;color:#569CD6'>shr</span><span
+lang=EN-US style='font-family:Consolas;color:#D4D4D4'> </span><span lang=EN-US
+style='font-family:Consolas;color:#569CD6'>al</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'>, </span><span lang=EN-US
+style='font-family:Consolas;color:#569CD6'>cl</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'> </span><span lang=EN-US
+style='font-family:Consolas;color:#6A9955'>; </span><span style='font-family:
+宋体;color:#6A9955'>把</span><span lang=EN-US style='font-family:Consolas;
+color:#6A9955'>al</span><span style='font-family:宋体;color:#6A9955'>右移四位，便只剩下十位数的</span><span
+lang=EN-US style='font-family:Consolas;color:#6A9955'>BCD</span><span
+style='font-family:宋体;color:#6A9955'>码</span></p>
+
+<p class=MsoNormal align=left style='margin-left:62.95pt;text-align:left;
+line-height:14.25pt;background:#1E1E1E'><span lang=EN-US style='font-family:
+Consolas;color:#D4D4D4'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span></p>
+
+<p class=MsoNormal align=left style='margin-left:62.95pt;text-align:left;
+line-height:14.25pt;background:#1E1E1E'><span lang=EN-US style='font-family:
+Consolas;color:#D4D4D4'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span><span
+lang=EN-US style='font-family:Consolas;color:#569CD6'>add</span><span
+lang=EN-US style='font-family:Consolas;color:#D4D4D4'> </span><span lang=EN-US
+style='font-family:Consolas;color:#569CD6'>al</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'>, '</span><span lang=EN-US
+style='font-family:Consolas;color:#B5CEA8'>0</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'>' </span><span lang=EN-US
+style='font-family:Consolas;color:#6A9955'>; '0'</span><span style='font-family:
+宋体;color:#6A9955'>为</span><span lang=EN-US style='font-family:Consolas;
+color:#6A9955'>30h</span><span style='font-family:宋体;color:#6A9955'>，即把二进制数转换为</span><span
+lang=EN-US style='font-family:Consolas;color:#6A9955'>ASCII</span><span
+style='font-family:宋体;color:#6A9955'>码</span></p>
+
+<p class=MsoNormal align=left style='margin-left:62.95pt;text-align:left;
+line-height:14.25pt;background:#1E1E1E'><span lang=EN-US style='font-family:
+Consolas;color:#D4D4D4'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span><span
+lang=EN-US style='font-family:Consolas;color:#569CD6'>add</span><span
+lang=EN-US style='font-family:Consolas;color:#D4D4D4'> </span><span lang=EN-US
+style='font-family:Consolas;color:#569CD6'>ah</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'>, '</span><span lang=EN-US
+style='font-family:Consolas;color:#B5CEA8'>0</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'>' </span><span lang=EN-US
+style='font-family:Consolas;color:#6A9955'>; </span><span style='font-family:
+宋体;color:#6A9955'>转换为</span><span lang=EN-US style='font-family:Consolas;
+color:#6A9955'>ASCII</span><span style='font-family:宋体;color:#6A9955'>码</span></p>
+
+<p class=MsoNormal align=left style='margin-left:62.95pt;text-align:left;
+line-height:14.25pt;background:#1E1E1E'><span lang=EN-US style='font-family:
+Consolas;color:#D4D4D4'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span></p>
+
+<p class=MsoNormal align=left style='margin-left:62.95pt;text-align:left;
+line-height:14.25pt;background:#1E1E1E'><span lang=EN-US style='font-family:
+Consolas;color:#D4D4D4'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span><span
+lang=EN-US style='font-family:Consolas;color:#569CD6'>mov</span><span
+lang=EN-US style='font-family:Consolas;color:#D4D4D4'> [</span><span
+lang=EN-US style='font-family:Consolas;color:#569CD6'>di</span><span
+lang=EN-US style='font-family:Consolas;color:#D4D4D4'>], </span><span
+lang=EN-US style='font-family:Consolas;color:#569CD6'>ax</span><span
+lang=EN-US style='font-family:Consolas;color:#D4D4D4'> </span><span lang=EN-US
+style='font-family:Consolas;color:#6A9955'>; </span><span style='font-family:
+宋体;color:#6A9955'>此时</span><span lang=EN-US style='font-family:Consolas;
+color:#6A9955'>ax</span><span style='font-family:宋体;color:#6A9955'>表示两位数的</span><span
+lang=EN-US style='font-family:Consolas;color:#6A9955'>ASCII</span><span
+style='font-family:宋体;color:#6A9955'>码，可以直接进行十六位的</span><span lang=EN-US
+style='font-family:Consolas;color:#6A9955'>mov</span><span style='font-family:
+宋体;color:#6A9955'>，把时间放入</span><span lang=EN-US style='font-family:Consolas;
+color:#6A9955'>time_format</span><span style='font-family:宋体;color:#6A9955'>变量</span></p>
+
+<p class=MsoNormal align=left style='margin-left:62.95pt;text-align:left;
+line-height:14.25pt;background:#1E1E1E'><span lang=EN-US style='font-family:
+Consolas;color:#D4D4D4'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span><span
+lang=EN-US style='font-family:Consolas;color:#569CD6'>inc</span><span
+lang=EN-US style='font-family:Consolas;color:#D4D4D4'> </span><span lang=EN-US
+style='font-family:Consolas;color:#569CD6'>di</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'> </span><span lang=EN-US
+style='font-family:Consolas;color:#6A9955'>; bx</span><span style='font-family:
+宋体;color:#6A9955'>指针往后指三位，跳过两位数的时间加一位数的分隔符</span></p>
+
+<p class=MsoNormal align=left style='margin-left:62.95pt;text-align:left;
+line-height:14.25pt;background:#1E1E1E'><span lang=EN-US style='font-family:
+Consolas;color:#D4D4D4'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span><span
+lang=EN-US style='font-family:Consolas;color:#569CD6'>inc</span><span
+lang=EN-US style='font-family:Consolas;color:#D4D4D4'> </span><span lang=EN-US
+style='font-family:Consolas;color:#569CD6'>di</span></p>
+
+<p class=MsoNormal align=left style='margin-left:62.95pt;text-align:left;
+line-height:14.25pt;background:#1E1E1E'><span lang=EN-US style='font-family:
+Consolas;color:#D4D4D4'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span><span
+lang=EN-US style='font-family:Consolas;color:#569CD6'>inc</span><span
+lang=EN-US style='font-family:Consolas;color:#D4D4D4'> </span><span lang=EN-US
+style='font-family:Consolas;color:#569CD6'>di</span></p>
+
+<p class=MsoNormal align=left style='margin-left:62.95pt;text-align:left;
+line-height:14.25pt;background:#1E1E1E'><span lang=EN-US style='font-family:
+Consolas;color:#D4D4D4'>&nbsp;</span></p>
+
+<p class=MsoNormal align=left style='margin-left:62.95pt;text-align:left;
+line-height:14.25pt;background:#1E1E1E'><span lang=EN-US style='font-family:
+Consolas;color:#D4D4D4'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span><span
+lang=EN-US style='font-family:Consolas;color:#569CD6'>dec</span><span
+lang=EN-US style='font-family:Consolas;color:#D4D4D4'> </span><span lang=EN-US
+style='font-family:Consolas;color:#569CD6'>dl</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'> </span><span lang=EN-US
+style='font-family:Consolas;color:#6A9955'>; </span><span style='font-family:
+宋体;color:#6A9955'>循环次数减</span><span lang=EN-US style='font-family:Consolas;
+color:#6A9955'>1</span></p>
+
+<p class=MsoNormal align=left style='margin-left:62.95pt;text-align:left;
+line-height:14.25pt;background:#1E1E1E'><span lang=EN-US style='font-family:
+Consolas;color:#D4D4D4'>&nbsp;&nbsp;&nbsp; </span><span lang=EN-US
+style='font-family:Consolas;color:#569CD6'>jnz</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'> read</span></p>
+
+<p class=MsoNormal align=left style='margin-left:62.95pt;text-align:left;
+line-height:14.25pt;background:#1E1E1E'><span lang=EN-US style='font-family:
+Consolas;color:#D4D4D4'>&nbsp;</span></p>
+
+<p class=MsoNormal align=left style='margin-left:62.95pt;text-align:left;
+line-height:14.25pt;background:#1E1E1E'><span lang=EN-US style='font-family:
+Consolas;color:#D4D4D4'>&nbsp;&nbsp;&nbsp; </span><span lang=EN-US
+style='font-family:Consolas;color:#569CD6'>ret</span></p>
+
+<p class=MsoNormal align=left style='margin-left:62.95pt;text-align:left;
+line-height:14.25pt;background:#1E1E1E'><span lang=EN-US style='font-family:
+Consolas;color:#D4D4D4'>&nbsp;</span></p>
+
+<p class=MsoNormal align=left style='margin-left:62.95pt;text-align:left;
+line-height:14.25pt;background:#1E1E1E'><span lang=EN-US style='font-family:
+Consolas;color:#DCDCAA'>data:</span></p>
+
+<p class=MsoNormal align=left style='margin-left:62.95pt;text-align:left;
+line-height:14.25pt;background:#1E1E1E'><span lang=EN-US style='font-family:
+Consolas;color:#D4D4D4'>&nbsp;&nbsp;&nbsp; time_select </span><span lang=EN-US
+style='font-family:Consolas;color:#4EC9B0'>db</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'> </span><span lang=EN-US
+style='font-family:Consolas;color:#B5CEA8'>9</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'>, </span><span lang=EN-US
+style='font-family:Consolas;color:#B5CEA8'>8</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'>, </span><span lang=EN-US
+style='font-family:Consolas;color:#B5CEA8'>7</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'>, </span><span lang=EN-US
+style='font-family:Consolas;color:#B5CEA8'>4</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'>, </span><span lang=EN-US
+style='font-family:Consolas;color:#B5CEA8'>2</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'>, </span><span lang=EN-US
+style='font-family:Consolas;color:#B5CEA8'>0</span><span lang=EN-US
+style='font-family:Consolas;color:#6A9955'>; </span><span style='font-family:
+宋体;color:#6A9955'>秒：</span><span lang=EN-US style='font-family:Consolas;
+color:#6A9955'>0&nbsp; </span><span style='font-family:宋体;color:#6A9955'>分：</span><span
+lang=EN-US style='font-family:Consolas;color:#6A9955'>2&nbsp;&nbsp; </span><span
+style='font-family:宋体;color:#6A9955'>时：</span><span lang=EN-US
+style='font-family:Consolas;color:#6A9955'>4&nbsp;&nbsp; </span><span
+style='font-family:宋体;color:#6A9955'>日：</span><span lang=EN-US
+style='font-family:Consolas;color:#6A9955'>7&nbsp;&nbsp; </span><span
+style='font-family:宋体;color:#6A9955'>月：</span><span lang=EN-US
+style='font-family:Consolas;color:#6A9955'>8&nbsp;&nbsp; </span><span
+style='font-family:宋体;color:#6A9955'>年：</span><span lang=EN-US
+style='font-family:Consolas;color:#6A9955'>9</span></p>
+
+<p class=MsoNormal align=left style='margin-left:62.95pt;text-align:left;
+line-height:14.25pt;background:#1E1E1E'><span lang=EN-US style='font-family:
+Consolas;color:#D4D4D4'>&nbsp;&nbsp;&nbsp; time_format </span><span lang=EN-US
+style='font-family:Consolas;color:#4EC9B0'>db</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'> &quot;yy/mm/</span><span
+lang=EN-US style='font-family:Consolas;color:#4EC9B0'>dd</span><span
+lang=EN-US style='font-family:Consolas;color:#D4D4D4'> hh:mm:</span><span
+lang=EN-US style='font-family:Consolas;color:#569CD6'>ss</span><span
+lang=EN-US style='font-family:Consolas;color:#D4D4D4'>&quot;</span></p>
+
+<p class=MsoNormal style='margin-left:62.95pt;text-indent:21.0pt'><span
+style='font-family:华文中宋'>其中还涉及BCD码的转换，主要思想为把一个八位的二位数BCD码分别存入两个寄存器中，并通过移位和按位与运算分别取得BCD的高八位和低八位，从而将BCD码化为2进制码。</span></p>
+
+<p class=MsoNormal style='margin-left:62.95pt;text-indent:21.0pt'><span
+style='font-family:华文中宋'>当然，我们还需要将时间打印出来给用户知晓，因而还需要将2进制的数字转换为ASCII码。主要思想为将二进制数加上字符0的ASCII码即可。</span></p>
+
+<p class=MsoNormal style='margin-left:62.95pt;text-indent:21.0pt'><span
+style='font-family:华文中宋'>完整的代码见“源代码与编译结果\time.asm”。</span></p>
+
+<p class=MsoNormal style='margin-left:42.0pt'><span style='font-family:华文中宋'>&nbsp;</span></p>
+
+<p class=MsoNormal style='margin-left:42.0pt;text-indent:-21.0pt;line-height:
+150%;text-autospace:none'><span style='line-height:150%;font-family:华文中宋'>3.<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp; </span></span><span
+style='line-height:150%;font-family:华文中宋'>利用NASM编译按照上述要求编写完毕的引导程序与用户程序。</span></p>
+
+<p class=MsoNormal style='margin-left:41.95pt;text-indent:21.0pt;line-height:
+150%;text-autospace:none'><span style='line-height:150%;font-family:华文中宋'>如下图所示，在控制台执行以下指令：</span></p>
+
+<p class=MsoNormal style='margin-left:41.95pt;text-indent:21.0pt;line-height:
+150%;text-autospace:none'><span lang=EN-US style='line-height:150%;font-family:
+华文中宋'>nasm lsyOS_boot.asm -o boot.lsy</span></p>
+
+<p class=MsoNormal style='margin-left:41.95pt;text-indent:21.0pt;line-height:
+150%;text-autospace:none'><span lang=EN-US style='line-height:150%;font-family:
+华文中宋'>nasm letter_impact.asm -o letter_impact.lsy</span></p>
+
+<p class=MsoNormal style='margin-left:41.95pt;text-indent:21.0pt;line-height:
+150%;text-autospace:none'><span lang=EN-US style='line-height:150%;font-family:
+华文中宋'>nasm help_page.asm -o help_page.lsy</span></p>
+
+<p class=MsoNormal style='margin-left:41.95pt;text-indent:21.0pt;line-height:
+150%;text-autospace:none'><span lang=EN-US style='line-height:150%;font-family:
+华文中宋'>nasm about_lsyOS.asm -o about_lsyOS.lsy</span></p>
+
+<p class=MsoNormal style='margin-left:41.95pt;text-indent:21.0pt;line-height:
+150%;text-autospace:none'><span lang=EN-US style='line-height:150%;font-family:
+华文中宋'>nasm time.asm -o time.lsy</span></p>
+
+<p class=MsoNormal style='margin-left:41.95pt;text-indent:21.0pt;line-height:
+150%;text-autospace:none'><span style='line-height:150%;font-family:华文中宋'>便可将上述5个源代码（1个引导文件）编译成对应的“.lsy”格式的机器码。</span></p>
+
+<p class=MsoNormal align=center style='text-align:center;line-height:150%;
+text-autospace:none'><span lang=EN-US><img width=505 height=230 id="图片 1"
+src="/assets/source/OS/2020-08-09-OS_lab2.files/image001.png"></span></p>
+
+<p class=MsoNormal style='margin-left:41.95pt;text-indent:21.0pt;line-height:
+150%;text-autospace:none'><span style='line-height:150%;font-family:华文中宋'>编译后的文件位于“源代码与编译结果”文件夹中。</span></p>
+
+<p class=MsoNormal style='line-height:150%;text-autospace:none'><span
+style='line-height:150%;font-family:华文中宋'>&nbsp;</span></p>
+
+<p class=MsoNormal style='margin-left:42.0pt;text-indent:-21.0pt;line-height:
+150%;text-autospace:none'><span style='line-height:150%;font-family:华文中宋'>4.<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp; </span></span><span
+style='line-height:150%;font-family:华文中宋'>使用自己制作的lsy_floopy_image_maker软件将引导程序放入软盘映像的第一个扇区，其他用户程序放入随后接连的几个扇区；</span></p>
+
+<p class=MsoNormal style='margin-left:41.95pt;text-indent:21.0pt;line-height:
+150%;text-autospace:none'><span style='line-height:150%;font-family:华文中宋'>由于3.5英寸软盘的一个扇区大小为512字节，因此，其实这便是要求我们把编译的“boot.lsy”作为一个大小为1.44MB的二进制文件的前512字节，而后的几个用户程序作为紧跟着的几个512字节。</span></p>
+
+<p class=MsoNormal style='margin-left:41.95pt;text-indent:21.0pt;line-height:
+150%;text-autospace:none'><span style='line-height:150%;font-family:华文中宋'>由于该步骤可能需要设计多次重复操作，以便测试，每次均用WinHex手动复制粘贴二进制代码稍显不便，且WinHex是一款收费软件，为减少版权纠纷（虽然后面用的Vmware
+Workstation还是涉及了版权纠纷，但能减少一些是一些吧），我们通过C++自己写一款lsy_floopy_image_maker软件来完成上述简单而又重复的工作。核心代码如下：</span></p>
+
+<p class=MsoNormal align=left style='text-align:left;line-height:14.25pt;
+background:#1E1E1E'><span lang=EN-US style='font-family:Consolas;color:#569CD6'>bool</span><span
+lang=EN-US style='font-family:Consolas;color:#D4D4D4'> </span><span lang=EN-US
+style='font-family:Consolas;color:#DCDCAA'>make_boot</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'>(</span><span lang=EN-US
+style='font-family:Consolas;color:#569CD6'>const</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'> string &amp;src_path, </span><span
+lang=EN-US style='font-family:Consolas;color:#569CD6'>const</span><span
+lang=EN-US style='font-family:Consolas;color:#D4D4D4'> string &amp;dst_path)</span></p>
+
+<p class=MsoNormal align=left style='text-align:left;line-height:14.25pt;
+background:#1E1E1E'><span lang=EN-US style='font-family:Consolas;color:#D4D4D4'>{</span></p>
+
+<p class=MsoNormal align=left style='text-align:left;line-height:14.25pt;
+background:#1E1E1E'><span lang=EN-US style='font-family:Consolas;color:#D4D4D4'>&nbsp;&nbsp;&nbsp;
+ifstream </span><span lang=EN-US style='font-family:Consolas;color:#9CDCFE'>fin</span><span
+lang=EN-US style='font-family:Consolas;color:#D4D4D4'>(src_path, ios::binary); </span><span
+lang=EN-US style='font-family:Consolas;color:#6A9955'>//</span><span
+style='font-family:宋体;color:#6A9955'>以二进制方式打开文件</span></p>
+
+<p class=MsoNormal align=left style='text-align:left;line-height:14.25pt;
+background:#1E1E1E'><span lang=EN-US style='font-family:Consolas;color:#D4D4D4'>&nbsp;&nbsp;&nbsp;
+</span><span lang=EN-US style='font-family:Consolas;color:#C586C0'>if</span><span
+lang=EN-US style='font-family:Consolas;color:#D4D4D4'>(!fin.</span><span
+lang=EN-US style='font-family:Consolas;color:#DCDCAA'>is_open</span><span
+lang=EN-US style='font-family:Consolas;color:#D4D4D4'>())</span></p>
+
+<p class=MsoNormal align=left style='text-align:left;line-height:14.25pt;
+background:#1E1E1E'><span lang=EN-US style='font-family:Consolas;color:#D4D4D4'>&nbsp;&nbsp;&nbsp;&nbsp;{</span></p>
+
+<p class=MsoNormal align=left style='text-align:left;line-height:14.25pt;
+background:#1E1E1E'><span lang=EN-US style='font-family:Consolas;color:#D4D4D4'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;cout
+&lt;&lt; </span><span lang=EN-US style='font-family:Consolas;color:#CE9178'>&quot;</span><span
+style='font-family:宋体;color:#CE9178'>引导文件不存在，请重新输入文件地址！</span><span lang=EN-US
+style='font-family:Consolas;color:#CE9178'>&quot;</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'> &lt;&lt; endl &lt;&lt; endl;</span></p>
+
+<p class=MsoNormal align=left style='text-align:left;line-height:14.25pt;
+background:#1E1E1E'><span lang=EN-US style='font-family:Consolas;color:#D4D4D4'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span
+lang=EN-US style='font-family:Consolas;color:#C586C0'>return</span><span
+lang=EN-US style='font-family:Consolas;color:#D4D4D4'> </span><span lang=EN-US
+style='font-family:Consolas;color:#569CD6'>false</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'>;</span></p>
+
+<p class=MsoNormal align=left style='text-align:left;line-height:14.25pt;
+background:#1E1E1E'><span lang=EN-US style='font-family:Consolas;color:#D4D4D4'>&nbsp;&nbsp;&nbsp;&nbsp;}</span></p>
+
+<p class=MsoNormal align=left style='text-align:left;line-height:14.25pt;
+background:#1E1E1E'><span lang=EN-US style='font-family:Consolas;color:#D4D4D4'>&nbsp;</span></p>
+
+<p class=MsoNormal align=left style='text-align:left;line-height:14.25pt;
+background:#1E1E1E'><span lang=EN-US style='font-family:Consolas;color:#D4D4D4'>&nbsp;&nbsp;&nbsp;
+fin.</span><span lang=EN-US style='font-family:Consolas;color:#DCDCAA'>seekg</span><span
+lang=EN-US style='font-family:Consolas;color:#D4D4D4'>(</span><span lang=EN-US
+style='font-family:Consolas;color:#B5CEA8'>0</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'>, ios::end);&nbsp;</span><span
+lang=EN-US style='font-family:Consolas;color:#6A9955'>//</span><span
+style='font-family:宋体;color:#6A9955'>设置文件指针到文件流的尾部</span></p>
+
+<p class=MsoNormal align=left style='text-align:left;line-height:14.25pt;
+background:#1E1E1E'><span lang=EN-US style='font-family:Consolas;color:#D4D4D4'>&nbsp;&nbsp;&nbsp;
+</span><span lang=EN-US style='font-family:Consolas;color:#569CD6'>int</span><span
+lang=EN-US style='font-family:Consolas;color:#D4D4D4'> file_size = fin.</span><span
+lang=EN-US style='font-family:Consolas;color:#DCDCAA'>tellg</span><span
+lang=EN-US style='font-family:Consolas;color:#D4D4D4'>();&nbsp;&nbsp;&nbsp;&nbsp;</span><span
+lang=EN-US style='font-family:Consolas;color:#6A9955'>//</span><span
+style='font-family:宋体;color:#6A9955'>读取文件指针的位置，单位为</span><span lang=EN-US
+style='font-family:Consolas;color:#6A9955'>“</span><span style='font-family:
+宋体;color:#6A9955'>字节</span><span lang=EN-US style='font-family:Consolas;
+color:#6A9955'>”</span></p>
+
+<p class=MsoNormal align=left style='text-align:left;line-height:14.25pt;
+background:#1E1E1E'><span lang=EN-US style='font-family:Consolas;color:#D4D4D4'>&nbsp;&nbsp;&nbsp;
+</span><span lang=EN-US style='font-family:Consolas;color:#C586C0'>if</span><span
+lang=EN-US style='font-family:Consolas;color:#D4D4D4'>(file_size != </span><span
+lang=EN-US style='font-family:Consolas;color:#B5CEA8'>512</span><span
+lang=EN-US style='font-family:Consolas;color:#D4D4D4'>)</span></p>
+
+<p class=MsoNormal align=left style='text-align:left;line-height:14.25pt;
+background:#1E1E1E'><span lang=EN-US style='font-family:Consolas;color:#D4D4D4'>&nbsp;&nbsp;&nbsp;
+{</span></p>
+
+<p class=MsoNormal align=left style='text-align:left;line-height:14.25pt;
+background:#1E1E1E'><span lang=EN-US style='font-family:Consolas;color:#D4D4D4'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;cout
+&lt;&lt; </span><span lang=EN-US style='font-family:Consolas;color:#CE9178'>&quot;</span><span
+style='font-family:宋体;color:#CE9178'>源文件大小不等于</span><span lang=EN-US
+style='font-family:Consolas;color:#CE9178'>512</span><span style='font-family:
+宋体;color:#CE9178'>字节，不符合引导文件要求，请重新输入文件地址！</span><span lang=EN-US
+style='font-family:Consolas;color:#CE9178'>&quot;</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'> &lt;&lt; endl &lt;&lt; endl;</span></p>
+
+<p class=MsoNormal align=left style='text-align:left;line-height:14.25pt;
+background:#1E1E1E'><span lang=EN-US style='font-family:Consolas;color:#D4D4D4'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span
+lang=EN-US style='font-family:Consolas;color:#C586C0'>return</span><span
+lang=EN-US style='font-family:Consolas;color:#D4D4D4'> </span><span lang=EN-US
+style='font-family:Consolas;color:#569CD6'>false</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'>;</span></p>
+
+<p class=MsoNormal align=left style='text-align:left;line-height:14.25pt;
+background:#1E1E1E'><span lang=EN-US style='font-family:Consolas;color:#D4D4D4'>&nbsp;&nbsp;&nbsp;
+}</span></p>
+
+<p class=MsoNormal align=left style='text-align:left;line-height:14.25pt;
+background:#1E1E1E'><span lang=EN-US style='font-family:Consolas;color:#D4D4D4'>&nbsp;</span></p>
+
+<p class=MsoNormal align=left style='text-align:left;line-height:14.25pt;
+background:#1E1E1E'><span lang=EN-US style='font-family:Consolas;color:#D4D4D4'>&nbsp;&nbsp;&nbsp;
+fin.</span><span lang=EN-US style='font-family:Consolas;color:#DCDCAA'>seekg</span><span
+lang=EN-US style='font-family:Consolas;color:#D4D4D4'>(</span><span lang=EN-US
+style='font-family:Consolas;color:#B5CEA8'>0</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'>, ios::beg); </span><span
+lang=EN-US style='font-family:Consolas;color:#6A9955'>//</span><span
+style='font-family:宋体;color:#6A9955'>回到文件首</span></p>
+
+<p class=MsoNormal align=left style='text-align:left;line-height:14.25pt;
+background:#1E1E1E'><span lang=EN-US style='font-family:Consolas;color:#D4D4D4'>&nbsp;&nbsp;&nbsp;
+</span><span lang=EN-US style='font-family:Consolas;color:#569CD6'>char</span><span
+lang=EN-US style='font-family:Consolas;color:#D4D4D4'> *boot_info = </span><span
+lang=EN-US style='font-family:Consolas;color:#C586C0'>new</span><span
+lang=EN-US style='font-family:Consolas;color:#D4D4D4'> </span><span lang=EN-US
+style='font-family:Consolas;color:#569CD6'>char</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'>[file_size];</span></p>
+
+<p class=MsoNormal align=left style='text-align:left;line-height:14.25pt;
+background:#1E1E1E'><span lang=EN-US style='font-family:Consolas;color:#D4D4D4'>&nbsp;&nbsp;&nbsp;
+fin.</span><span lang=EN-US style='font-family:Consolas;color:#DCDCAA'>read</span><span
+lang=EN-US style='font-family:Consolas;color:#D4D4D4'>(boot_info, file_size);</span></p>
+
+<p class=MsoNormal align=left style='text-align:left;line-height:14.25pt;
+background:#1E1E1E'><span lang=EN-US style='font-family:Consolas;color:#D4D4D4'>&nbsp;&nbsp;&nbsp;
+fin.</span><span lang=EN-US style='font-family:Consolas;color:#DCDCAA'>close</span><span
+lang=EN-US style='font-family:Consolas;color:#D4D4D4'>();</span></p>
+
+<p class=MsoNormal align=left style='text-align:left;line-height:14.25pt;
+background:#1E1E1E'><span lang=EN-US style='font-family:Consolas;color:#D4D4D4'>&nbsp;</span></p>
+
+<p class=MsoNormal align=left style='text-align:left;line-height:14.25pt;
+background:#1E1E1E'><span lang=EN-US style='font-family:Consolas;color:#D4D4D4'>&nbsp;&nbsp;&nbsp;
+ofstream </span><span lang=EN-US style='font-family:Consolas;color:#9CDCFE'>fout</span><span
+lang=EN-US style='font-family:Consolas;color:#D4D4D4'>(dst_path, ios::binary);</span></p>
+
+<p class=MsoNormal align=left style='text-align:left;line-height:14.25pt;
+background:#1E1E1E'><span lang=EN-US style='font-family:Consolas;color:#D4D4D4'>&nbsp;&nbsp;&nbsp;
+fout.</span><span lang=EN-US style='font-family:Consolas;color:#DCDCAA'>write</span><span
+lang=EN-US style='font-family:Consolas;color:#D4D4D4'>(boot_info, file_size);</span></p>
+
+<p class=MsoNormal align=left style='text-align:left;line-height:14.25pt;
+background:#1E1E1E'><span lang=EN-US style='font-family:Consolas;color:#D4D4D4'>&nbsp;&nbsp;&nbsp;
+</span><span lang=EN-US style='font-family:Consolas;color:#C586C0'>delete[]</span><span
+lang=EN-US style='font-family:Consolas;color:#D4D4D4'> boot_info;</span></p>
+
+<p class=MsoNormal align=left style='text-align:left;line-height:14.25pt;
+background:#1E1E1E'><span lang=EN-US style='font-family:Consolas;color:#D4D4D4'>&nbsp;&nbsp;&nbsp;
+fout.</span><span lang=EN-US style='font-family:Consolas;color:#DCDCAA'>close</span><span
+lang=EN-US style='font-family:Consolas;color:#D4D4D4'>();</span></p>
+
+<p class=MsoNormal align=left style='text-align:left;line-height:14.25pt;
+background:#1E1E1E'><span lang=EN-US style='font-family:Consolas;color:#D4D4D4'>&nbsp;&nbsp;&nbsp;
+</span></p>
+
+<p class=MsoNormal align=left style='text-align:left;line-height:14.25pt;
+background:#1E1E1E'><span lang=EN-US style='font-family:Consolas;color:#D4D4D4'>&nbsp;&nbsp;&nbsp;
+</span><span lang=EN-US style='font-family:Consolas;color:#C586C0'>return</span><span
+lang=EN-US style='font-family:Consolas;color:#D4D4D4'> </span><span lang=EN-US
+style='font-family:Consolas;color:#569CD6'>true</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'>;</span></p>
+
+<p class=MsoNormal align=left style='text-align:left;line-height:14.25pt;
+background:#1E1E1E'><span lang=EN-US style='font-family:Consolas;color:#D4D4D4'>}</span></p>
+
+<p class=MsoNormal align=left style='text-align:left;line-height:14.25pt;
+background:#1E1E1E'><span lang=EN-US style='font-family:Consolas;color:#D4D4D4'>&nbsp;</span></p>
+
+<p class=MsoNormal align=left style='text-align:left;line-height:14.25pt;
+background:#1E1E1E'><span lang=EN-US style='font-family:Consolas;color:#569CD6'>bool</span><span
+lang=EN-US style='font-family:Consolas;color:#D4D4D4'> </span><span lang=EN-US
+style='font-family:Consolas;color:#DCDCAA'>make_com</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'>(</span><span lang=EN-US
+style='font-family:Consolas;color:#569CD6'>const</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'> string &amp;src_path, </span><span
+lang=EN-US style='font-family:Consolas;color:#569CD6'>const</span><span
+lang=EN-US style='font-family:Consolas;color:#D4D4D4'> string &amp;dst_path)</span></p>
+
+<p class=MsoNormal align=left style='text-align:left;line-height:14.25pt;
+background:#1E1E1E'><span lang=EN-US style='font-family:Consolas;color:#D4D4D4'>{</span></p>
+
+<p class=MsoNormal align=left style='text-align:left;line-height:14.25pt;
+background:#1E1E1E'><span lang=EN-US style='font-family:Consolas;color:#D4D4D4'>&nbsp;&nbsp;&nbsp;
+ifstream </span><span lang=EN-US style='font-family:Consolas;color:#9CDCFE'>fin</span><span
+lang=EN-US style='font-family:Consolas;color:#D4D4D4'>(src_path, ios::binary); </span><span
+lang=EN-US style='font-family:Consolas;color:#6A9955'>//</span><span
+style='font-family:宋体;color:#6A9955'>以二进制方式打开文件</span></p>
+
+<p class=MsoNormal align=left style='text-align:left;line-height:14.25pt;
+background:#1E1E1E'><span lang=EN-US style='font-family:Consolas;color:#D4D4D4'>&nbsp;&nbsp;&nbsp;
+</span><span lang=EN-US style='font-family:Consolas;color:#C586C0'>if</span><span
+lang=EN-US style='font-family:Consolas;color:#D4D4D4'>(!fin.</span><span
+lang=EN-US style='font-family:Consolas;color:#DCDCAA'>is_open</span><span
+lang=EN-US style='font-family:Consolas;color:#D4D4D4'>())</span></p>
+
+<p class=MsoNormal align=left style='text-align:left;line-height:14.25pt;
+background:#1E1E1E'><span lang=EN-US style='font-family:Consolas;color:#D4D4D4'>&nbsp;&nbsp;&nbsp;&nbsp;{</span></p>
+
+<p class=MsoNormal align=left style='text-align:left;line-height:14.25pt;
+background:#1E1E1E'><span lang=EN-US style='font-family:Consolas;color:#D4D4D4'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;cout
+&lt;&lt; </span><span lang=EN-US style='font-family:Consolas;color:#CE9178'>&quot;com</span><span
+style='font-family:宋体;color:#CE9178'>文件不存在，请重新输入文件地址！</span><span lang=EN-US
+style='font-family:Consolas;color:#CE9178'>&quot;</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'> &lt;&lt; endl &lt;&lt; endl;</span></p>
+
+<p class=MsoNormal align=left style='text-align:left;line-height:14.25pt;
+background:#1E1E1E'><span lang=EN-US style='font-family:Consolas;color:#D4D4D4'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span
+lang=EN-US style='font-family:Consolas;color:#C586C0'>return</span><span
+lang=EN-US style='font-family:Consolas;color:#D4D4D4'> </span><span lang=EN-US
+style='font-family:Consolas;color:#569CD6'>false</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'>;</span></p>
+
+<p class=MsoNormal align=left style='text-align:left;line-height:14.25pt;
+background:#1E1E1E'><span lang=EN-US style='font-family:Consolas;color:#D4D4D4'>&nbsp;&nbsp;&nbsp;&nbsp;}</span></p>
+
+<p class=MsoNormal align=left style='text-align:left;line-height:14.25pt;
+background:#1E1E1E'><span lang=EN-US style='font-family:Consolas;color:#D4D4D4'>&nbsp;</span></p>
+
+<p class=MsoNormal align=left style='text-align:left;line-height:14.25pt;
+background:#1E1E1E'><span lang=EN-US style='font-family:Consolas;color:#D4D4D4'>&nbsp;&nbsp;&nbsp;
+fin.</span><span lang=EN-US style='font-family:Consolas;color:#DCDCAA'>seekg</span><span
+lang=EN-US style='font-family:Consolas;color:#D4D4D4'>(</span><span lang=EN-US
+style='font-family:Consolas;color:#B5CEA8'>0</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'>, ios::end);&nbsp;</span><span
+lang=EN-US style='font-family:Consolas;color:#6A9955'>//</span><span
+style='font-family:宋体;color:#6A9955'>设置文件指针到文件流的尾部</span></p>
+
+<p class=MsoNormal align=left style='text-align:left;line-height:14.25pt;
+background:#1E1E1E'><span lang=EN-US style='font-family:Consolas;color:#D4D4D4'>&nbsp;&nbsp;&nbsp;
+</span><span lang=EN-US style='font-family:Consolas;color:#569CD6'>int</span><span
+lang=EN-US style='font-family:Consolas;color:#D4D4D4'> file_size = fin.</span><span
+lang=EN-US style='font-family:Consolas;color:#DCDCAA'>tellg</span><span
+lang=EN-US style='font-family:Consolas;color:#D4D4D4'>();&nbsp;&nbsp;&nbsp;&nbsp;</span><span
+lang=EN-US style='font-family:Consolas;color:#6A9955'>//</span><span
+style='font-family:宋体;color:#6A9955'>读取文件指针的位置，单位为</span><span lang=EN-US
+style='font-family:Consolas;color:#6A9955'>“</span><span style='font-family:
+宋体;color:#6A9955'>字节</span><span lang=EN-US style='font-family:Consolas;
+color:#6A9955'>”</span></p>
+
+<p class=MsoNormal align=left style='text-align:left;line-height:14.25pt;
+background:#1E1E1E'><span lang=EN-US style='font-family:Consolas;color:#D4D4D4'>&nbsp;&nbsp;&nbsp;
+</span></p>
+
+<p class=MsoNormal align=left style='text-align:left;line-height:14.25pt;
+background:#1E1E1E'><span lang=EN-US style='font-family:Consolas;color:#D4D4D4'>&nbsp;&nbsp;&nbsp;
+fin.</span><span lang=EN-US style='font-family:Consolas;color:#DCDCAA'>seekg</span><span
+lang=EN-US style='font-family:Consolas;color:#D4D4D4'>(</span><span lang=EN-US
+style='font-family:Consolas;color:#B5CEA8'>0</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'>, ios::beg); </span><span
+lang=EN-US style='font-family:Consolas;color:#6A9955'>//</span><span
+style='font-family:宋体;color:#6A9955'>回到文件首</span></p>
+
+<p class=MsoNormal align=left style='text-align:left;line-height:14.25pt;
+background:#1E1E1E'><span lang=EN-US style='font-family:Consolas;color:#D4D4D4'>&nbsp;&nbsp;&nbsp;
+</span><span lang=EN-US style='font-family:Consolas;color:#569CD6'>char</span><span
+lang=EN-US style='font-family:Consolas;color:#D4D4D4'> *com_info = </span><span
+lang=EN-US style='font-family:Consolas;color:#C586C0'>new</span><span
+lang=EN-US style='font-family:Consolas;color:#D4D4D4'> </span><span lang=EN-US
+style='font-family:Consolas;color:#569CD6'>char</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'>[file_size];</span></p>
+
+<p class=MsoNormal align=left style='text-align:left;line-height:14.25pt;
+background:#1E1E1E'><span lang=EN-US style='font-family:Consolas;color:#D4D4D4'>&nbsp;&nbsp;&nbsp;
+fin.</span><span lang=EN-US style='font-family:Consolas;color:#DCDCAA'>read</span><span
+lang=EN-US style='font-family:Consolas;color:#D4D4D4'>(com_info, file_size);</span></p>
+
+<p class=MsoNormal align=left style='text-align:left;line-height:14.25pt;
+background:#1E1E1E'><span lang=EN-US style='font-family:Consolas;color:#D4D4D4'>&nbsp;&nbsp;&nbsp;
+fin.</span><span lang=EN-US style='font-family:Consolas;color:#DCDCAA'>close</span><span
+lang=EN-US style='font-family:Consolas;color:#D4D4D4'>();</span></p>
+
+<p class=MsoNormal align=left style='text-align:left;line-height:14.25pt;
+background:#1E1E1E'><span lang=EN-US style='font-family:Consolas;color:#D4D4D4'>&nbsp;</span></p>
+
+<p class=MsoNormal align=left style='text-align:left;line-height:14.25pt;
+background:#1E1E1E'><span lang=EN-US style='font-family:Consolas;color:#D4D4D4'>&nbsp;&nbsp;&nbsp;
+ofstream </span><span lang=EN-US style='font-family:Consolas;color:#9CDCFE'>fout</span><span
+lang=EN-US style='font-family:Consolas;color:#D4D4D4'>(dst_path, ios::binary |
+ios::app); </span><span lang=EN-US style='font-family:Consolas;color:#6A9955'>//</span><span
+style='font-family:宋体;color:#6A9955'>写到文件尾</span></p>
+
+<p class=MsoNormal align=left style='text-align:left;line-height:14.25pt;
+background:#1E1E1E'><span lang=EN-US style='font-family:Consolas;color:#D4D4D4'>&nbsp;&nbsp;&nbsp;
+fout.</span><span lang=EN-US style='font-family:Consolas;color:#DCDCAA'>write</span><span
+lang=EN-US style='font-family:Consolas;color:#D4D4D4'>(com_info, file_size);</span></p>
+
+<p class=MsoNormal align=left style='text-align:left;line-height:14.25pt;
+background:#1E1E1E'><span lang=EN-US style='font-family:Consolas;color:#D4D4D4'>&nbsp;&nbsp;&nbsp;
+</span><span lang=EN-US style='font-family:Consolas;color:#C586C0'>delete[]</span><span
+lang=EN-US style='font-family:Consolas;color:#D4D4D4'> com_info;</span></p>
+
+<p class=MsoNormal align=left style='text-align:left;line-height:14.25pt;
+background:#1E1E1E'><span lang=EN-US style='font-family:Consolas;color:#D4D4D4'>&nbsp;</span></p>
+
+<p class=MsoNormal align=left style='text-align:left;line-height:14.25pt;
+background:#1E1E1E'><span lang=EN-US style='font-family:Consolas;color:#D4D4D4'>&nbsp;&nbsp;&nbsp;
+</span><span lang=EN-US style='font-family:Consolas;color:#569CD6'>int</span><span
+lang=EN-US style='font-family:Consolas;color:#D4D4D4'> padding_bit_len = </span><span
+lang=EN-US style='font-family:Consolas;color:#B5CEA8'>512</span><span
+lang=EN-US style='font-family:Consolas;color:#D4D4D4'> - file_size; </span><span
+lang=EN-US style='font-family:Consolas;color:#6A9955'>//</span><span
+style='font-family:宋体;color:#6A9955'>填充位长度，填充满一个扇区</span><span lang=EN-US
+style='font-family:Consolas;color:#6A9955'>512B</span></p>
+
+<p class=MsoNormal align=left style='text-align:left;line-height:14.25pt;
+background:#1E1E1E'><span lang=EN-US style='font-family:Consolas;color:#D4D4D4'>&nbsp;&nbsp;&nbsp;
+</span><span lang=EN-US style='font-family:Consolas;color:#569CD6'>char</span><span
+lang=EN-US style='font-family:Consolas;color:#D4D4D4'> *padding_bit = </span><span
+lang=EN-US style='font-family:Consolas;color:#C586C0'>new</span><span
+lang=EN-US style='font-family:Consolas;color:#D4D4D4'> </span><span lang=EN-US
+style='font-family:Consolas;color:#569CD6'>char</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'>[padding_bit_len]; </span><span
+lang=EN-US style='font-family:Consolas;color:#6A9955'>//</span><span
+style='font-family:宋体;color:#6A9955'>填充位</span></p>
+
+<p class=MsoNormal align=left style='text-align:left;line-height:14.25pt;
+background:#1E1E1E'><span lang=EN-US style='font-family:Consolas;color:#D4D4D4'>&nbsp;&nbsp;&nbsp;
+</span><span lang=EN-US style='font-family:Consolas;color:#DCDCAA'>memset</span><span
+lang=EN-US style='font-family:Consolas;color:#D4D4D4'>(padding_bit, </span><span
+lang=EN-US style='font-family:Consolas;color:#B5CEA8'>0</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'>, padding_bit_len);</span></p>
+
+<p class=MsoNormal align=left style='text-align:left;line-height:14.25pt;
+background:#1E1E1E'><span lang=EN-US style='font-family:Consolas;color:#D4D4D4'>&nbsp;&nbsp;&nbsp;
+fout.</span><span lang=EN-US style='font-family:Consolas;color:#DCDCAA'>write</span><span
+lang=EN-US style='font-family:Consolas;color:#D4D4D4'>(padding_bit,
+padding_bit_len);</span></p>
+
+<p class=MsoNormal align=left style='text-align:left;line-height:14.25pt;
+background:#1E1E1E'><span lang=EN-US style='font-family:Consolas;color:#D4D4D4'>&nbsp;&nbsp;&nbsp;
+fout.</span><span lang=EN-US style='font-family:Consolas;color:#DCDCAA'>close</span><span
+lang=EN-US style='font-family:Consolas;color:#D4D4D4'>();</span></p>
+
+<p class=MsoNormal align=left style='text-align:left;line-height:14.25pt;
+background:#1E1E1E'><span lang=EN-US style='font-family:Consolas;color:#D4D4D4'>&nbsp;&nbsp;&nbsp;
+</span><span lang=EN-US style='font-family:Consolas;color:#C586C0'>delete[]</span><span
+lang=EN-US style='font-family:Consolas;color:#D4D4D4'> padding_bit;</span></p>
+
+<p class=MsoNormal align=left style='text-align:left;line-height:14.25pt;
+background:#1E1E1E'><span lang=EN-US style='font-family:Consolas;color:#D4D4D4'>&nbsp;&nbsp;&nbsp;
+</span></p>
+
+<p class=MsoNormal align=left style='text-align:left;line-height:14.25pt;
+background:#1E1E1E'><span lang=EN-US style='font-family:Consolas;color:#D4D4D4'>&nbsp;&nbsp;&nbsp;
+</span><span lang=EN-US style='font-family:Consolas;color:#C586C0'>return</span><span
+lang=EN-US style='font-family:Consolas;color:#D4D4D4'> </span><span lang=EN-US
+style='font-family:Consolas;color:#569CD6'>true</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'>;</span></p>
+
+<p class=MsoNormal align=left style='text-align:left;line-height:14.25pt;
+background:#1E1E1E'><span lang=EN-US style='font-family:Consolas;color:#D4D4D4'>}</span></p>
+
+<p class=MsoNormal align=left style='text-align:left;line-height:14.25pt;
+background:#1E1E1E'><span lang=EN-US style='font-family:Consolas;color:#D4D4D4'>&nbsp;</span></p>
+
+<p class=MsoNormal align=left style='text-align:left;line-height:14.25pt;
+background:#1E1E1E'><span lang=EN-US style='font-family:Consolas;color:#569CD6'>void</span><span
+lang=EN-US style='font-family:Consolas;color:#D4D4D4'> </span><span lang=EN-US
+style='font-family:Consolas;color:#DCDCAA'>padding</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'>(</span><span lang=EN-US
+style='font-family:Consolas;color:#569CD6'>const</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'> string &amp;dst_path) </span><span
+lang=EN-US style='font-family:Consolas;color:#6A9955'>//</span><span
+style='font-family:宋体;color:#6A9955'>用</span><span lang=EN-US style='font-family:
+Consolas;color:#6A9955'>0</span><span style='font-family:宋体;color:#6A9955'>填充至</span><span
+lang=EN-US style='font-family:Consolas;color:#6A9955'>1.44MB</span></p>
+
+<p class=MsoNormal align=left style='text-align:left;line-height:14.25pt;
+background:#1E1E1E'><span lang=EN-US style='font-family:Consolas;color:#D4D4D4'>{</span></p>
+
+<p class=MsoNormal align=left style='text-align:left;line-height:14.25pt;
+background:#1E1E1E'><span lang=EN-US style='font-family:Consolas;color:#D4D4D4'>&nbsp;&nbsp;&nbsp;
+</span><span lang=EN-US style='font-family:Consolas;color:#569CD6'>int</span><span
+lang=EN-US style='font-family:Consolas;color:#D4D4D4'> file_size = </span><span
+lang=EN-US style='font-family:Consolas;color:#DCDCAA'>GetFileSize</span><span
+lang=EN-US style='font-family:Consolas;color:#D4D4D4'>(dst_path),</span></p>
+
+<p class=MsoNormal align=left style='text-align:left;line-height:14.25pt;
+background:#1E1E1E'><span lang=EN-US style='font-family:Consolas;color:#D4D4D4'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+padding_bit_len = floppy_capacity - file_size; </span><span lang=EN-US
+style='font-family:Consolas;color:#6A9955'>//</span><span style='font-family:
+宋体;color:#6A9955'>填充位长度，</span><span lang=EN-US style='font-family:Consolas;
+color:#6A9955'>1.44MB-512B</span></p>
+
+<p class=MsoNormal align=left style='text-align:left;line-height:14.25pt;
+background:#1E1E1E'><span lang=EN-US style='font-family:Consolas;color:#D4D4D4'>&nbsp;&nbsp;&nbsp;
+</span><span lang=EN-US style='font-family:Consolas;color:#569CD6'>char</span><span
+lang=EN-US style='font-family:Consolas;color:#D4D4D4'> *padding_bit = </span><span
+lang=EN-US style='font-family:Consolas;color:#C586C0'>new</span><span
+lang=EN-US style='font-family:Consolas;color:#D4D4D4'> </span><span lang=EN-US
+style='font-family:Consolas;color:#569CD6'>char</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'>[padding_bit_len]; </span><span
+lang=EN-US style='font-family:Consolas;color:#6A9955'>//</span><span
+style='font-family:宋体;color:#6A9955'>填充位</span></p>
+
+<p class=MsoNormal align=left style='text-align:left;line-height:14.25pt;
+background:#1E1E1E'><span lang=EN-US style='font-family:Consolas;color:#D4D4D4'>&nbsp;&nbsp;&nbsp;
+</span><span lang=EN-US style='font-family:Consolas;color:#DCDCAA'>memset</span><span
+lang=EN-US style='font-family:Consolas;color:#D4D4D4'>(padding_bit, </span><span
+lang=EN-US style='font-family:Consolas;color:#B5CEA8'>0</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'>, padding_bit_len);</span></p>
+
+<p class=MsoNormal align=left style='text-align:left;line-height:14.25pt;
+background:#1E1E1E'><span lang=EN-US style='font-family:Consolas;color:#D4D4D4'>&nbsp;&nbsp;&nbsp;
+ofstream </span><span lang=EN-US style='font-family:Consolas;color:#9CDCFE'>fout</span><span
+lang=EN-US style='font-family:Consolas;color:#D4D4D4'>(dst_path, ios::binary |
+ios::app); </span><span lang=EN-US style='font-family:Consolas;color:#6A9955'>//</span><span
+style='font-family:宋体;color:#6A9955'>写到文件尾</span></p>
+
+<p class=MsoNormal align=left style='text-align:left;line-height:14.25pt;
+background:#1E1E1E'><span lang=EN-US style='font-family:Consolas;color:#D4D4D4'>&nbsp;&nbsp;&nbsp;
+fout.</span><span lang=EN-US style='font-family:Consolas;color:#DCDCAA'>write</span><span
+lang=EN-US style='font-family:Consolas;color:#D4D4D4'>(padding_bit,
+padding_bit_len);</span></p>
+
+<p class=MsoNormal align=left style='text-align:left;line-height:14.25pt;
+background:#1E1E1E'><span lang=EN-US style='font-family:Consolas;color:#D4D4D4'>&nbsp;&nbsp;&nbsp;
+fout.</span><span lang=EN-US style='font-family:Consolas;color:#DCDCAA'>close</span><span
+lang=EN-US style='font-family:Consolas;color:#D4D4D4'>();</span></p>
+
+<p class=MsoNormal align=left style='text-align:left;line-height:14.25pt;
+background:#1E1E1E'><span lang=EN-US style='font-family:Consolas;color:#D4D4D4'>&nbsp;&nbsp;&nbsp;
+</span><span lang=EN-US style='font-family:Consolas;color:#C586C0'>delete[]</span><span
+lang=EN-US style='font-family:Consolas;color:#D4D4D4'> padding_bit;</span></p>
+
+<p class=MsoNormal align=left style='text-align:left;line-height:14.25pt;
+background:#1E1E1E'><span lang=EN-US style='font-family:Consolas;color:#D4D4D4'>}</span></p>
+
+<p class=MsoNormal align=left style='text-align:left;line-height:14.25pt;
+background:#1E1E1E'><span lang=EN-US style='font-family:Consolas;color:#D4D4D4'>&nbsp;</span></p>
+
+<p class=MsoNormal align=left style='text-align:left;line-height:14.25pt;
+background:#1E1E1E'><span lang=EN-US style='font-family:Consolas;color:#569CD6'>int</span><span
+lang=EN-US style='font-family:Consolas;color:#D4D4D4'> </span><span lang=EN-US
+style='font-family:Consolas;color:#DCDCAA'>main</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'>()</span></p>
+
+<p class=MsoNormal align=left style='text-align:left;line-height:14.25pt;
+background:#1E1E1E'><span lang=EN-US style='font-family:Consolas;color:#D4D4D4'>{</span></p>
+
+<p class=MsoNormal align=left style='text-align:left;line-height:14.25pt;
+background:#1E1E1E'><span lang=EN-US style='font-family:Consolas;color:#D4D4D4'>&nbsp;&nbsp;&nbsp;
+string src_path, dst_path = </span><span lang=EN-US style='font-family:Consolas;
+color:#CE9178'>&quot; boot.lsyOS&quot;</span><span lang=EN-US style='font-family:
+Consolas;color:#D4D4D4'>;</span></p>
+
+<p class=MsoNormal align=left style='text-align:left;line-height:14.25pt;
+background:#1E1E1E'><span lang=EN-US style='font-family:Consolas;color:#D4D4D4'>&nbsp;</span></p>
+
+<p class=MsoNormal align=left style='text-align:left;line-height:14.25pt;
+background:#1E1E1E'><span lang=EN-US style='font-family:Consolas;color:#D4D4D4'>&nbsp;&nbsp;&nbsp;
+src_path = </span><span lang=EN-US style='font-family:Consolas;color:#CE9178'>&quot;boot.lsy&quot;</span><span
+lang=EN-US style='font-family:Consolas;color:#D4D4D4'>;</span></p>
+
+<p class=MsoNormal align=left style='text-align:left;line-height:14.25pt;
+background:#1E1E1E'><span lang=EN-US style='font-family:Consolas;color:#D4D4D4'>&nbsp;&nbsp;&nbsp;
+</span><span lang=EN-US style='font-family:Consolas;color:#DCDCAA'>make_boot</span><span
+lang=EN-US style='font-family:Consolas;color:#D4D4D4'>(src_path, dst_path);</span></p>
+
+<p class=MsoNormal align=left style='text-align:left;line-height:14.25pt;
+background:#1E1E1E'><span lang=EN-US style='font-family:Consolas;color:#D4D4D4'>&nbsp;</span></p>
+
+<p class=MsoNormal align=left style='text-align:left;line-height:14.25pt;
+background:#1E1E1E'><span lang=EN-US style='font-family:Consolas;color:#D4D4D4'>&nbsp;&nbsp;&nbsp;
+src_path = </span><span lang=EN-US style='font-family:Consolas;color:#CE9178'>&quot;letter_impact.lsy&quot;</span><span
+lang=EN-US style='font-family:Consolas;color:#D4D4D4'>;</span></p>
+
+<p class=MsoNormal align=left style='text-align:left;line-height:14.25pt;
+background:#1E1E1E'><span lang=EN-US style='font-family:Consolas;color:#D4D4D4'>&nbsp;&nbsp;&nbsp;
+</span><span lang=EN-US style='font-family:Consolas;color:#DCDCAA'>make_com</span><span
+lang=EN-US style='font-family:Consolas;color:#D4D4D4'>(src_path, dst_path);</span></p>
+
+<p class=MsoNormal align=left style='text-align:left;line-height:14.25pt;
+background:#1E1E1E'><span lang=EN-US style='font-family:Consolas;color:#D4D4D4'>&nbsp;</span></p>
+
+<p class=MsoNormal align=left style='text-align:left;line-height:14.25pt;
+background:#1E1E1E'><span lang=EN-US style='font-family:Consolas;color:#D4D4D4'>&nbsp;&nbsp;&nbsp;
+src_path = </span><span lang=EN-US style='font-family:Consolas;color:#CE9178'>&quot;help_page.lsy&quot;</span><span
+lang=EN-US style='font-family:Consolas;color:#D4D4D4'>;</span></p>
+
+<p class=MsoNormal align=left style='text-align:left;line-height:14.25pt;
+background:#1E1E1E'><span lang=EN-US style='font-family:Consolas;color:#D4D4D4'>&nbsp;&nbsp;&nbsp;
+</span><span lang=EN-US style='font-family:Consolas;color:#DCDCAA'>make_com</span><span
+lang=EN-US style='font-family:Consolas;color:#D4D4D4'>(src_path, dst_path);</span></p>
+
+<p class=MsoNormal align=left style='text-align:left;line-height:14.25pt;
+background:#1E1E1E'><span lang=EN-US style='font-family:Consolas;color:#D4D4D4'>&nbsp;</span></p>
+
+<p class=MsoNormal align=left style='text-align:left;line-height:14.25pt;
+background:#1E1E1E'><span lang=EN-US style='font-family:Consolas;color:#D4D4D4'>&nbsp;&nbsp;&nbsp;
+src_path = </span><span lang=EN-US style='font-family:Consolas;color:#CE9178'>&quot;about_lsyOS.lsy&quot;</span><span
+lang=EN-US style='font-family:Consolas;color:#D4D4D4'>;</span></p>
+
+<p class=MsoNormal align=left style='text-align:left;line-height:14.25pt;
+background:#1E1E1E'><span lang=EN-US style='font-family:Consolas;color:#D4D4D4'>&nbsp;&nbsp;&nbsp;
+</span><span lang=EN-US style='font-family:Consolas;color:#DCDCAA'>make_com</span><span
+lang=EN-US style='font-family:Consolas;color:#D4D4D4'>(src_path, dst_path); </span></p>
+
+<p class=MsoNormal align=left style='text-align:left;line-height:14.25pt;
+background:#1E1E1E'><span lang=EN-US style='font-family:Consolas;color:#D4D4D4'>&nbsp;&nbsp;&nbsp;
+</span></p>
+
+<p class=MsoNormal align=left style='text-align:left;line-height:14.25pt;
+background:#1E1E1E'><span lang=EN-US style='font-family:Consolas;color:#D4D4D4'>&nbsp;&nbsp;&nbsp;
+src_path = </span><span lang=EN-US style='font-family:Consolas;color:#CE9178'>&quot;time.lsy&quot;</span><span
+lang=EN-US style='font-family:Consolas;color:#D4D4D4'>;</span></p>
+
+<p class=MsoNormal align=left style='text-align:left;line-height:14.25pt;
+background:#1E1E1E'><span lang=EN-US style='font-family:Consolas;color:#D4D4D4'>&nbsp;&nbsp;&nbsp;
+</span><span lang=EN-US style='font-family:Consolas;color:#DCDCAA'>make_com</span><span
+lang=EN-US style='font-family:Consolas;color:#D4D4D4'>(src_path, dst_path);</span></p>
+
+<p class=MsoNormal align=left style='text-align:left;line-height:14.25pt;
+background:#1E1E1E'><span lang=EN-US style='font-family:Consolas;color:#D4D4D4'>&nbsp;&nbsp;&nbsp;
+</span></p>
+
+<p class=MsoNormal align=left style='text-align:left;line-height:14.25pt;
+background:#1E1E1E'><span lang=EN-US style='font-family:Consolas;color:#D4D4D4'>&nbsp;&nbsp;&nbsp;
+</span><span lang=EN-US style='font-family:Consolas;color:#DCDCAA'>padding</span><span
+lang=EN-US style='font-family:Consolas;color:#D4D4D4'>(dst_path);</span></p>
+
+<p class=MsoNormal align=left style='text-align:left;line-height:14.25pt;
+background:#1E1E1E'><span lang=EN-US style='font-family:Consolas;color:#D4D4D4'>&nbsp;</span></p>
+
+<p class=MsoNormal align=left style='text-align:left;text-indent:21.0pt;
+line-height:14.25pt;background:#1E1E1E'><span lang=EN-US style='font-family:
+Consolas;color:#D4D4D4'>cout &lt;&lt; </span><span lang=EN-US style='font-family:
+Consolas;color:#CE9178'>&quot;</span><span style='font-family:宋体;color:#CE9178'>制作软盘映像成功！</span><span
+lang=EN-US style='font-family:Consolas;color:#CE9178'>&quot;</span><span
+lang=EN-US style='font-family:Consolas;color:#D4D4D4'> &lt;&lt; endl;</span></p>
+
+<p class=MsoNormal align=left style='text-align:left;text-indent:21.0pt;
+line-height:14.25pt;background:#1E1E1E'><span lang=EN-US style='font-family:
+Consolas;color:#D4D4D4'>&nbsp;</span></p>
+
+<p class=MsoNormal align=left style='text-align:left;line-height:14.25pt;
+background:#1E1E1E'><span lang=EN-US style='font-family:Consolas;color:#D4D4D4'>&nbsp;&nbsp;&nbsp;
+</span><span lang=EN-US style='font-family:Consolas;color:#C586C0'>return</span><span
+lang=EN-US style='font-family:Consolas;color:#D4D4D4'> </span><span lang=EN-US
+style='font-family:Consolas;color:#B5CEA8'>0</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'>;</span></p>
+
+<p class=MsoNormal align=left style='text-align:left;line-height:14.25pt;
+background:#1E1E1E'><span lang=EN-US style='font-family:Consolas;color:#D4D4D4'>}</span></p>
+
+<p class=MsoNormal style='margin-left:41.95pt;text-indent:21.0pt;line-height:
+150%;text-autospace:none'><span style='line-height:150%;font-family:华文中宋'>完整代码见</span><span
+style='line-height:150%;font-family:华文中宋'>“</span><span style='line-height:
+150%;font-family:华文中宋'>源代码与编译结果</span><span lang=EN-US style='line-height:150%;
+font-family:华文中宋'>\lsy_floopy_image_maker.cpp</span><span style='line-height:
+150%;font-family:华文中宋'>”，</span><span style='line-height:150%;font-family:华文中宋'>利用</span><span
+lang=EN-US style='line-height:150%;font-family:华文中宋'>G++</span><span
+style='line-height:150%;font-family:华文中宋'>编译后的文件见</span><span style='line-height:
+150%;font-family:华文中宋'>“<span lang=EN-US>lsy_floopy_image_maker.exe</span>”</span><span
+style='line-height:150%;font-family:华文中宋'>。</span></p>
+
+<p class=MsoNormal style='margin-left:41.95pt;text-indent:21.0pt;line-height:
+150%;text-autospace:none'><span style='line-height:150%;font-family:华文中宋'>将</span><span
+style='line-height:150%;font-family:华文中宋'>“<span lang=EN-US>boot.lsy</span>”</span><span
+style='line-height:150%;font-family:华文中宋'>、</span><span style='line-height:
+150%;font-family:华文中宋'>“<span lang=EN-US>letter_impact.lsy</span>”</span><span
+style='line-height:150%;font-family:华文中宋'>、</span><span style='line-height:
+150%;font-family:华文中宋'>“<span lang=EN-US>help_page.lsy</span>”</span><span
+style='line-height:150%;font-family:华文中宋'>、</span><span style='line-height:
+150%;font-family:华文中宋'>“<span lang=EN-US>about_lsyOS.lsy</span>”</span><span
+style='line-height:150%;font-family:华文中宋'>、</span></p>
+
+<p class=MsoNormal style='margin-left:41.95pt;line-height:150%;text-autospace:
+none'><span style='line-height:150%;font-family:华文中宋'>“<span lang=EN-US>time.lsy</span>”</span><span
+style='line-height:150%;font-family:华文中宋'>与</span><span style='line-height:
+150%;font-family:华文中宋'>“<span lang=EN-US>lsy_floopy_image_maker.exe</span>”</span><span
+style='line-height:150%;font-family:华文中宋'>置于同一目录</span><span style='line-height:
+150%;font-family:华文中宋'>，</span><span style='line-height:150%;font-family:华文中宋'>执行</span><span
+style='line-height:150%;font-family:华文中宋'>“<span lang=EN-US>lsy_floopy_image_maker.exe</span>”，</span><span
+style='line-height:150%;font-family:华文中宋'>屏幕将会如下显示</span><span
+style='line-height:150%;font-family:华文中宋'>：</span></p>
+
+<p class=MsoNormal align=center style='text-align:center;line-height:150%;
+text-autospace:none'><span lang=EN-US><img width=351 height=105
+src="/assets/source/OS/2020-08-09-OS_lab2.files/image002.png"></span></p>
+
+<p class=MsoNormal style='margin-left:41.95pt;text-indent:21.0pt;line-height:
+150%;text-autospace:none'><span style='line-height:150%;font-family:华文中宋'>且该目录下会出现大小为1,474,560
+字节的“boot.lsyOS”文件（该文件见“引导文件\boot.lsyOS”），这代表我们的软盘映像制作成功了。</span></p>
+
+<p class=MsoNormal style='line-height:150%;text-autospace:none'><span
+style='line-height:150%;font-family:华文中宋'>&nbsp;</span></p>
+
+<p class=MsoNormal style='margin-left:42.0pt;text-indent:-21.0pt;line-height:
+150%;text-autospace:none'><span style='line-height:150%;font-family:华文中宋'>5.<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp; </span></span><span
+style='line-height:150%;font-family:华文中宋'>修改先前VMware Workstation配置中软盘的映像路径为新制作的软盘映像的路径，从而使虚拟机从新软盘映像中引导启动并进入自己新制作的“进化后的原型操作系统”。</span></p>
+
+<p class=MsoNormal style='margin-left:41.95pt;text-indent:21.0pt;line-height:
+150%;text-autospace:none'><span style='line-height:150%;font-family:华文中宋'>如下图，我们将软盘映像文件修改成我们新制作的“boot.lsyOS”路径并保存配置。</span></p>
+
+<p class=MsoNormal style='margin-left:42.0pt;line-height:150%;text-autospace:
+none'><span lang=EN-US><img src="/assets/source/OS/2020-08-09-OS_lab2.files/image003.png"></span></p>
+
+<p class=MsoNormal style='margin-left:41.95pt;text-indent:21.0pt;line-height:
+150%;text-autospace:none'><span style='line-height:150%;font-family:华文中宋'>配置完毕后，开启虚拟机，屏幕如下显示：</span></p>
+
+<p class=MsoNormal align=center style='text-align:center;line-height:150%;
+text-autospace:none'><span lang=EN-US><img src="/assets/source/OS/2020-08-09-OS_lab2.files/image004.png"></span></p>
+
+<p class=MsoNormal style='margin-left:41.95pt;text-indent:21.0pt;line-height:
+150%;text-autospace:none'><span style='line-height:150%;font-family:华文中宋'>虚拟机成功进入了我们新制作的“boot.lsyOS”引导程序，并打印出了相应提示信息。</span></p>
+
+<p class=MsoNormal style='margin-left:41.95pt;text-indent:21.0pt;line-height:
+150%;text-autospace:none'><span style='line-height:150%;font-family:华文中宋'>下面，我们逐个调试用户程序。</span></p>
+
+<p class=MsoNormal style='margin-left:41.95pt;text-indent:21.0pt;line-height:
+150%;text-autospace:none'><span style='line-height:150%;font-family:华文中宋'>首先，键盘按下数字4，以进入Time程序。如下图所示，屏幕的右下角出现了当前时间：</span></p>
+
+<p class=MsoNormal align=center style='text-align:center;line-height:150%;
+text-autospace:none'><span lang=EN-US><img src="/assets/source/OS/2020-08-09-OS_lab2.files/image005.png"></span></p>
+
+<p class=MsoNormal style='margin-left:41.95pt;text-indent:21.0pt;line-height:
+150%;text-autospace:none'><span style='line-height:150%;font-family:华文中宋'>然后，键盘按下数字3，以进入About
+lsyOS程序。如下图所示，屏幕的左下角出现了关于lsyOS的信息：</span></p>
+
+<p class=MsoNormal align=center style='text-align:center;line-height:150%;
+text-autospace:none'><span lang=EN-US><img src="/assets/source/OS/2020-08-09-OS_lab2.files/image006.png"></span></p>
+
+<p class=MsoNormal style='margin-left:41.95pt;text-indent:21.0pt;line-height:
+150%;text-autospace:none'><span style='line-height:150%;font-family:华文中宋'>接着，键盘按下数字2，以进入Help
+Page程序。如下图所示，屏幕的右上角出现了帮助信息：</span></p>
+
+<p class=MsoNormal align=center style='text-align:center;line-height:150%;
+text-autospace:none'><span lang=EN-US><img src="/assets/source/OS/2020-08-09-OS_lab2.files/image007.png"></span></p>
+
+<p class=MsoNormal style='margin-left:41.95pt;text-indent:21.0pt;line-height:
+150%;text-autospace:none'><span style='line-height:150%;font-family:华文中宋'>接着，键盘按下数字1，以进入Letter
+imapct程序。如下图所示，屏幕的左上角出现了字母碰撞的程序：</span></p>
+
+<p class=MsoNormal style='line-height:150%;text-autospace:none'><span
+lang=EN-US><img src="/assets/source/OS/2020-08-09-OS_lab2.files/image008.png"></span></p>
+
+<p class=MsoNormal style='margin-left:41.95pt;text-indent:21.0pt;line-height:
+150%;text-autospace:none'><span style='line-height:150%;font-family:华文中宋'>至此，我们用引导程序加载用户程序的实验圆满完成！</span></p>
+
+<p class=MsoNormal style='line-height:150%;text-autospace:none'><b><span
+style='line-height:150%;font-family:华文中宋'>&nbsp;</span></b></p>
+
+<p class=MsoNormal style='line-height:150%;text-autospace:none'><b><span
+style='line-height:150%;font-family:华文中宋'>&nbsp;</span></b></p>
+
+<p class=MsoNormal style='line-height:150%;text-autospace:none'><b><span
+style='line-height:150%;font-family:华文中宋'>&nbsp;</span></b></p>
+
+<p class=MsoNormal style='line-height:150%;text-autospace:none'><b><span
+style='line-height:150%;font-family:华文中宋'>&nbsp;</span></b></p>
+
+<p class=MsoNormal style='margin-left:0cm;text-indent:0cm;line-height:150%;
+text-autospace:none'><b><span style='line-height:150%;font-family:华文中宋'>五.<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp; </span></span></b><b><span
+style='line-height:150%;font-family:华文中宋'>实验心得</span></b></p>
+
+<p class=MsoNormal style='margin-left:42.05pt;text-indent:-21.0pt;line-height:
+150%;text-autospace:none'><span style='line-height:150%;font-family:华文中宋'>1.<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp; </span></span><span
+style='line-height:150%;font-family:华文中宋'>随着汇编代码编写的数量逐渐增多，我似乎有比较高水平和高质量的汇编代码编写能力了。自上个实验通过反汇编解决一些复杂逻辑的判断问题后，本次实验getchar子程序的编写中又出现了注入此类的复杂逻辑问题，如下所示：</span></p>
+
+<p class=MsoNormal align=left style='margin-left:62.95pt;text-align:left;
+text-indent:10.5pt;line-height:14.25pt;background:#1E1E1E'><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'>&nbsp; </span><span lang=EN-US
+style='font-family:Consolas;color:#6A9955'>; if(al == 0 || al &gt; 4 &amp;&amp;
+al &lt; '1' || al &gt; '4')</span></p>
+
+<p class=MsoNormal align=left style='margin-left:62.95pt;text-align:left;
+line-height:14.25pt;background:#1E1E1E'><span lang=EN-US style='font-family:
+Consolas;color:#D4D4D4'>&nbsp;&nbsp;&nbsp; </span><span lang=EN-US
+style='font-family:Consolas;color:#6A9955'>; getchar_again()</span></p>
+
+<p class=MsoNormal align=left style='margin-left:62.95pt;text-align:left;
+line-height:14.25pt;background:#1E1E1E'><span lang=EN-US style='font-family:
+Consolas;color:#D4D4D4'>&nbsp;&nbsp;&nbsp; </span><span lang=EN-US
+style='font-family:Consolas;color:#569CD6'>cmp</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'> </span><span lang=EN-US
+style='font-family:Consolas;color:#569CD6'>al</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'>, </span><span lang=EN-US
+style='font-family:Consolas;color:#B5CEA8'>0</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'> </span><span lang=EN-US
+style='font-family:Consolas;color:#6A9955'>; if(al == 0)</span></p>
+
+<p class=MsoNormal align=left style='margin-left:62.95pt;text-align:left;
+line-height:14.25pt;background:#1E1E1E'><span lang=EN-US style='font-family:
+Consolas;color:#D4D4D4'>&nbsp;&nbsp;&nbsp; </span><span lang=EN-US
+style='font-family:Consolas;color:#569CD6'>jz</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'> getchar</span></p>
+
+<p class=MsoNormal align=left style='margin-left:62.95pt;text-align:left;
+line-height:14.25pt;background:#1E1E1E'><span lang=EN-US style='font-family:
+Consolas;color:#D4D4D4'>&nbsp;&nbsp;&nbsp; </span><span lang=EN-US
+style='font-family:Consolas;color:#569CD6'>cmp</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'> </span><span lang=EN-US
+style='font-family:Consolas;color:#569CD6'>al</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'>, </span><span lang=EN-US
+style='font-family:Consolas;color:#B5CEA8'>4</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'> </span><span lang=EN-US
+style='font-family:Consolas;color:#6A9955'>; if(al &lt;= 4)</span></p>
+
+<p class=MsoNormal align=left style='margin-left:62.95pt;text-align:left;
+line-height:14.25pt;background:#1E1E1E'><span lang=EN-US style='font-family:
+Consolas;color:#D4D4D4'>&nbsp;&nbsp;&nbsp; </span><span lang=EN-US
+style='font-family:Consolas;color:#569CD6'>jle</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'> petmit_load</span></p>
+
+<p class=MsoNormal align=left style='margin-left:62.95pt;text-align:left;
+line-height:14.25pt;background:#1E1E1E'><span lang=EN-US style='font-family:
+Consolas;color:#D4D4D4'>&nbsp;&nbsp;&nbsp; </span><span lang=EN-US
+style='font-family:Consolas;color:#569CD6'>cmp</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'> </span><span lang=EN-US
+style='font-family:Consolas;color:#569CD6'>al</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'>, '</span><span lang=EN-US
+style='font-family:Consolas;color:#B5CEA8'>1</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'>' </span><span lang=EN-US
+style='font-family:Consolas;color:#6A9955'>; if(al &lt; '1')</span></p>
+
+<p class=MsoNormal align=left style='margin-left:62.95pt;text-align:left;
+line-height:14.25pt;background:#1E1E1E'><span lang=EN-US style='font-family:
+Consolas;color:#D4D4D4'>&nbsp;&nbsp;&nbsp; </span><span lang=EN-US
+style='font-family:Consolas;color:#569CD6'>jl</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'> getchar</span></p>
+
+<p class=MsoNormal align=left style='margin-left:62.95pt;text-align:left;
+line-height:14.25pt;background:#1E1E1E'><span lang=EN-US style='font-family:
+Consolas;color:#D4D4D4'>&nbsp;&nbsp;&nbsp; </span><span lang=EN-US
+style='font-family:Consolas;color:#569CD6'>cmp</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'> </span><span lang=EN-US
+style='font-family:Consolas;color:#569CD6'>al</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'>, '</span><span lang=EN-US
+style='font-family:Consolas;color:#B5CEA8'>4</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'>'</span></p>
+
+<p class=MsoNormal align=left style='margin-left:62.95pt;text-align:left;
+line-height:14.25pt;background:#1E1E1E'><span lang=EN-US style='font-family:
+Consolas;color:#D4D4D4'>&nbsp;&nbsp;&nbsp; </span><span lang=EN-US
+style='font-family:Consolas;color:#569CD6'>jg</span><span lang=EN-US
+style='font-family:Consolas;color:#D4D4D4'> getchar</span></p>
+
+<p class=MsoNormal style='margin-left:41.95pt;text-indent:21.0pt;line-height:
+150%;text-autospace:none'><span style='line-height:150%;font-family:华文中宋'>但是这一次，我竟能游刃有余的写出了这样的代码，说明我的汇编水平确实得到提高了。</span></p>
+
+<p class=MsoNormal style='margin-left:41.95pt;text-indent:21.0pt;line-height:
+150%;text-autospace:none'><span style='line-height:150%;font-family:华文中宋'>但为了检验我这段代码的质量，我仍想和编译器一较高下，看看人脑这次能否胜于电脑。于是，我再次用VS2017的C++写了上述if逻辑的判断代码，并将其编译成可执行文件后反汇编，反汇编结果如下：</span></p>
+
+<p class=MsoNormal align=center style='text-align:center;line-height:150%;
+text-autospace:none'><span lang=EN-US><img src="/assets/source/OS/2020-08-09-OS_lab2.files/image009.png"></span></p>
+
+<p class=MsoNormal style='margin-left:41.95pt;text-indent:21.0pt;line-height:
+150%;text-autospace:none'><span style='line-height:150%;font-family:华文中宋'>令人震惊的结果是，我自己的写法和编译器的写法高度一致，这说明常看反汇编代码对提高汇编能力是很有帮助的。</span></p>
+
+<p class=MsoNormal style='margin-left:42.05pt;text-indent:-21.0pt;line-height:
+150%;text-autospace:none'><span style='line-height:150%;font-family:华文中宋'>2.<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp; </span></span><span
+style='line-height:150%;font-family:华文中宋'>撰写实验报告对操作系统的“进化”具有促进作用。比如当我在写到关于“time”程序时想到，我自己的程序若需要实时更新时间，便需要独占系统的资源，从而没有机会调用其他的程序。我该如何解决这个问题呢？这促使了我的思考与学习，为而后的操作系统的多进程管理等学习内容做了铺垫。</span></p>
+
+<p class=MsoNormal style='margin-left:21.05pt;line-height:150%;text-autospace:
+none'><span style='line-height:150%;font-family:华文中宋'>&nbsp;</span></p>
+
+<p class=MsoNormal style='margin-left:0cm;text-indent:0cm;line-height:150%;
+text-autospace:none'><b><span style='line-height:150%;font-family:华文中宋'>六.<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp; </span></span></b><b><span
+style='line-height:150%;font-family:华文中宋'>参考文献</span></b></p>
+
+<p class=MsoListParagraph style='margin-left:21.0pt;text-indent:-21.0pt'><span
+lang=EN-US style='font-family:"Georgia",serif'>[1]<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+</span></span><span style='font-family:华文中宋'>周杰英，张萍，郭雪梅，黄方军．微机原理、汇编语言与接口技术，北京：人民邮电出版社，<span
+lang=EN-US>2011.</span></span></p>
+
+</div>
+
+</body>
+
+</html>
